@@ -30,7 +30,8 @@ A web adaptation of the ["Bad AI In A Box" (BAIIAB) project](https://github.com/
    
    # Edit .env with your configuration
    # Set LM_STUDIO_ADDRESS to your LM Studio server IP
-   # Add your OPENROUTER_API_KEY for cloud AI backup
+   # Add your actual OPENROUTER_API_KEY for cloud AI backup
+   # (It's safe to put real credentials in .env - this file is not tracked by git)
    ```
 
 3. **Run locally**:
@@ -162,10 +163,17 @@ For automated deployment, configure these secrets in your GitHub repository:
 **Go to Settings → Secrets and variables → Actions → New repository secret**
 
 - `DEPLOY_SSH_KEY`: Private SSH key for server access (contents of `~/.ssh/id_rsa`)
-- `DEPLOY_HOST`: IP address or hostname of your deployment server (e.g., "100.106.49.116")
+- `DEPLOY_HOST`: Tailscale IP address of your deployment server (e.g., "100.106.49.116")
 - `DEPLOY_USER`: Username for SSH access to deployment server (e.g., "deploy_user")
-- `LM_STUDIO_ADDRESS`: IP address or hostname of your LM Studio server (e.g., "100.106.49.116")
+- `LM_STUDIO_ADDRESS`: Tailscale IP address of your LM Studio server (e.g., "100.106.49.116")
 - `OPENROUTER_API_KEY`: Your OpenRouter API key for cloud AI backup
+- `TS_OAUTH_CLIENT_ID`: Tailscale OAuth Client ID for GitHub Actions access
+- `TS_OAUTH_SECRET`: Tailscale OAuth Secret for GitHub Actions access
+
+**To get Tailscale OAuth credentials:**
+1. Go to [Tailscale Admin Console](https://login.tailscale.com/admin/settings/oauth)
+2. Generate OAuth Client with tags: `tag:github-actions`  
+3. Copy Client ID and Secret to GitHub Secrets
 
 ### Testing
 ```bash
@@ -181,7 +189,7 @@ docker run -p 3000:3000 badaiinasite-test
 
 This project is based on the original BAIIAB concept by [lastcoolnameleft](https://github.com/lastcoolnameleft/baiiab/). Feel free to contribute improvements, new prompts, or bug fixes!
 
-**Important**: The `.env` file contains sensitive credentials and is excluded from git. Always use `.env.example` as a template and never commit actual API keys or server addresses.
+**Important**: The `.env` file contains sensitive credentials and is excluded from git via `.gitignore`. It's safe to put your real API keys and server addresses in `.env` for local development - this file will never be committed to version control. Always use `.env.example` as a template.
 
 ## 📄 License
 

@@ -28,7 +28,8 @@ npm install
 
 # Set up environment configuration
 cp .env.example .env
-# Edit .env with your LM Studio server address and OpenRouter API key
+# Edit .env with your LM Studio server address and actual OpenRouter API key
+# (Safe to use real credentials in .env - this file is excluded from git)
 
 # Development server
 npm run dev
@@ -75,13 +76,13 @@ badaiinasite/
 
 ## Important Implementation Notes
 
-1. **Menu System**: The `menu.json` file contains categories and prompts. Users select from predefined options rather than typing custom prompts. Prompts are optimized for brevity.
+1. **Menu System**: The `menu.json` file contains categories and prompts based on the original BAIIAB project. Users select from predefined options rather than typing custom prompts. Prompts are optimized for brevity.
 
-2. **AI Integration**: The server switches between LM Studio and OpenRouter based on configuration. Responses are limited to ~80 tokens for concise output matching the original BAIIAB constraints.
+2. **AI Integration**: The server switches between LM Studio and OpenRouter based on configuration. Responses are limited to ~80 tokens for concise output matching the original BAIIAB thermal printer constraints.
 
 3. **Response Formatting**: The frontend supports basic markdown formatting (bold, italic, line breaks) and safely renders HTML. Responses are displayed with proper styling.
 
-4. **Deployment**: The GitHub Actions workflow builds the Docker image and deploys to the specified Ubuntu VM using configurable secrets for LM Studio address and OpenRouter API key.
+4. **Deployment**: The GitHub Actions workflow uses Tailscale v3 for secure network access, builds the Docker image, and deploys to the specified Ubuntu VM using configurable secrets.
 
 5. **Environment Configuration**: Uses dotenv for local development with `.env` file support (excluded from git).
 
@@ -90,10 +91,12 @@ badaiinasite/
 ### GitHub Secrets Required
 The automated deployment requires these repository secrets:
 - `DEPLOY_SSH_KEY`: Private SSH key for Ubuntu server access
-- `DEPLOY_HOST`: IP/hostname of deployment server (e.g., "100.106.49.116")
+- `DEPLOY_HOST`: Tailscale IP/hostname of deployment server (e.g., "100.106.49.116")
 - `DEPLOY_USER`: Username for SSH access (e.g., "edwardjensen")
-- `LM_STUDIO_ADDRESS`: IP/hostname of LM Studio server (e.g., "100.106.49.116")
+- `LM_STUDIO_ADDRESS`: Tailscale IP/hostname of LM Studio server (e.g., "100.106.49.116")
 - `OPENROUTER_API_KEY`: OpenRouter API key for cloud AI fallback
+- `TS_OAUTH_CLIENT_ID`: Tailscale OAuth Client ID for GitHub Actions network access (v3)
+- `TS_OAUTH_SECRET`: Tailscale OAuth Secret for GitHub Actions network access (v3)
 
 ### Local Deployment
 For manual server deployment, set these environment variables:
@@ -105,4 +108,4 @@ export OPENROUTER_API_KEY="your-api-key"      # optional
 
 ## References
 
-For detailed requirements and specifications, see `/prompt/context.md`
+This project implements the specifications from the original Bad AI In A Box (BAIIAB) project by lastcoolnameleft. See the README.md for complete project documentation.

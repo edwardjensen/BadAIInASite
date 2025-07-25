@@ -58,6 +58,9 @@ jspm_packages/
 # Test files
 test/
 
+# Prompt folder (project planning, not for production)
+prompt/
+
 # IDE
 .vscode/
 .idea/

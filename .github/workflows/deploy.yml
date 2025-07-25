@@ -12,7 +12,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
+  build-container:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -44,18 +44,18 @@ jobs:
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  deploy:
-    needs: build
+  deploy-to-server:
+    needs: build-container
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
@@ -65,7 +65,19 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+        echo -e "Host ${{ secrets.DEPLOY_HOST }}\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+    - name: Connect to Tailscale Network
+      uses: tailscale/github-action@v3
+      with:
+        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+        tags: tag:github-actions
+
+    - name: Wait for Tailscale connection
+      run: |
+        # Wait for Tailscale to be fully connected
+        timeout 30s bash -c 'until tailscale ping ${{ secrets.DEPLOY_HOST }} -c 1; do sleep 2; done'
 
     - name: Deploy to server
       run: |
@@ -95,7 +107,7 @@ jobs:
           # Show running containers
           docker ps
           
-          echo "✅ Deployment completed successfully!"
+          echo "✅ Deployment completed successfully at $(date)"
         EOF
 
     - name: Cleanup SSH key
