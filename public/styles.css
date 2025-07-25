@@ -154,7 +154,7 @@ h2 {
     margin: 2rem 0;
     font-size: 1.1rem;
     line-height: 1.6;
-    min-height: 120px;
+    min-height: var(--response-min-height, 120px);
     display: flex;
     align-items: center;
     justify-content: center;

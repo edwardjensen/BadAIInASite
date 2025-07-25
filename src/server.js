@@ -3,22 +3,59 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs').promises;
+const ini = require('ini');
 
 class BadAIServer {
     constructor() {
         this.app = express();
-        this.port = process.env.PORT || 3000;
         this.menu = {};
+        this.config = {};
+    }
+
+    async initialize() {
+        await this.loadConfig();
+        this.setupAIConfiguration();
+        this.setupMiddleware();
+        this.setupRoutes();
+        await this.loadMenu();
+    }
+
+    async loadConfig() {
+        try {
+            const configPath = path.join(__dirname, '../settings.conf');
+            const configFile = await fs.readFile(configPath, 'utf8');
+            this.config = ini.parse(configFile);
+            console.log('Configuration loaded successfully');
+        } catch (error) {
+            console.error('Failed to load settings.conf, using defaults:', error.message);
+            // Set default configuration
+            this.config = {
+                ai_response: {
+                    max_tokens: 80,
+                    temperature: 0.9,
+                    concise_prompt: 'Keep your response concise (under 100 words). Use simple formatting without markdown. Be direct and punchy.'
+                },
+                ui: {
+                    response_min_height: 120,
+                    loading_timeout: 30000
+                },
+                server: {
+                    default_port: 3000,
+                    api_timeout: 30000
+                }
+            };
+        }
+    }
+
+    setupAIConfiguration() {
+        // Server configuration
+        this.port = process.env.PORT || this.config.server.default_port;
         
         // AI configuration
         const lmStudioAddress = process.env.LM_STUDIO_ADDRESS || 'localhost';
         this.lmStudioUrl = process.env.LM_STUDIO_URL || `http://${lmStudioAddress}:1234/v1/chat/completions`;
         this.openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
         this.openRouterKey = process.env.OPENROUTER_API_KEY;
-        
-        this.setupMiddleware();
-        this.setupRoutes();
-        this.loadMenu();
     }
 
     setupMiddleware() {
@@ -39,6 +76,20 @@ class BadAIServer {
             res.json({
                 localAI: localAIStatus,
                 status: localAIStatus ? 'connected' : 'error'
+            });
+        });
+
+        // Get UI configuration
+        this.app.get('/api/config', (req, res) => {
+            res.json({
+                ui: {
+                    response_min_height: this.config.ui.response_min_height,
+                    loading_timeout: this.config.ui.loading_timeout
+                },
+                ai_response: {
+                    max_tokens: this.config.ai_response.max_tokens,
+                    temperature: this.config.ai_response.temperature
+                }
             });
         });
 
@@ -109,13 +160,13 @@ class BadAIServer {
                     model: 'local-model',
                     messages: [...messages, {
                         role: 'system', 
-                        content: 'Keep your response concise (under 100 words). Use simple formatting without markdown. Be direct and punchy.'
+                        content: this.config.ai_response.concise_prompt
                     }],
-                    max_tokens: 80,
-                    temperature: 0.9,
+                    max_tokens: parseInt(this.config.ai_response.max_tokens),
+                    temperature: parseFloat(this.config.ai_response.temperature),
                     stream: false
                 }),
-                timeout: 30000
+                timeout: this.config.server.api_timeout
             });
 
             if (!response.ok) {
@@ -148,13 +199,13 @@ class BadAIServer {
                     model: 'google/gemma-2-9b-it:free',
                     messages: [...messages, {
                         role: 'system', 
-                        content: 'Keep your response concise (under 100 words). Use simple formatting without markdown. Be direct and punchy.'
+                        content: this.config.ai_response.concise_prompt
                     }],
-                    max_tokens: 80,
-                    temperature: 0.9,
+                    max_tokens: parseInt(this.config.ai_response.max_tokens),
+                    temperature: parseFloat(this.config.ai_response.temperature),
                     stream: false
                 }),
-                timeout: 30000
+                timeout: this.config.server.api_timeout
             });
 
             if (!response.ok) {
@@ -170,10 +221,13 @@ class BadAIServer {
         }
     }
 
-    start() {
+    async start() {
+        await this.initialize();
+        
         this.app.listen(this.port, '0.0.0.0', () => {
             console.log(`🤖 Bad AI In A Site server running on port ${this.port}`);
             console.log(`📱 Open http://localhost:${this.port} to access the site`);
+            console.log(`⚙️  Max tokens: ${this.config.ai_response.max_tokens}, Temperature: ${this.config.ai_response.temperature}`);
             
             // Check AI status on startup
             this.checkLocalAI().then(available => {
@@ -191,4 +245,7 @@ if (!global.fetch) {
 
 // Start the server
 const server = new BadAIServer();
-server.start();
+server.start().catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+});

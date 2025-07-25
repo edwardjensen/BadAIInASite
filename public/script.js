@@ -39,9 +39,28 @@ class BadAI {
 
     async init() {
         await this.loadMenu();
+        await this.loadConfig();
         this.setupEventListeners();
         this.renderCategories();
         this.checkAIStatus();
+    }
+
+    async loadConfig() {
+        try {
+            const response = await fetch('/api/config');
+            this.config = await response.json();
+            
+            // Apply UI configuration
+            document.documentElement.style.setProperty('--response-min-height', `${this.config.ui.response_min_height}px`);
+            
+            console.log('Configuration loaded:', this.config);
+        } catch (error) {
+            console.error('Failed to load configuration:', error);
+            this.config = {
+                ui: { response_min_height: 120, loading_timeout: 30000 },
+                ai_response: { max_tokens: 80, temperature: 0.9 }
+            };
+        }
     }
 
     async loadMenu() {

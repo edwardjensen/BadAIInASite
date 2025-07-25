@@ -62,29 +62,32 @@ docker run -p 3000:3000 badaiinasite
 ```
 badaiinasite/
 ├── src/
-│   ├── frontend/     # Client-side code
-│   ├── backend/      # Server-side code
-│   └── shared/       # Shared utilities/types
-├── public/           # Static assets
-├── test/             # Test files
+│   └── server.js     # Express server with AI integration
+├── public/           # Static frontend assets
+│   ├── index.html    # Main application
+│   ├── styles.css    # CSS styling
+│   └── script.js     # Frontend JavaScript
 ├── .github/
 │   └── workflows/    # GitHub Actions CI/CD
-├── Dockerfile
-├── menu.json         # Predefined prompts
-└── package.json
+├── settings.conf     # Application configuration
+├── menu.json         # Predefined AI prompts
+├── Dockerfile        # Container configuration
+└── package.json      # Node.js dependencies
 ```
 
 ## Important Implementation Notes
 
 1. **Menu System**: The `menu.json` file contains categories and prompts based on the original BAIIAB project. Users select from predefined options rather than typing custom prompts. Prompts are optimized for brevity.
 
-2. **AI Integration**: The server switches between LM Studio and OpenRouter based on configuration. Responses are limited to ~80 tokens for concise output matching the original BAIIAB thermal printer constraints.
+2. **Configuration System**: The `settings.conf` file contains build-specific settings like AI response limits, UI parameters, and server timeouts. This is separate from environment variables and allows easy customization without code changes.
 
-3. **Response Formatting**: The frontend supports basic markdown formatting (bold, italic, line breaks) and safely renders HTML. Responses are displayed with proper styling.
+3. **AI Integration**: The server switches between LM Studio and OpenRouter based on configuration. Responses are limited by the `max_tokens` setting (default 80) for concise output matching the original BAIIAB thermal printer constraints.
 
-4. **Deployment**: The GitHub Actions workflow uses Tailscale v3 for secure network access, builds the Docker image, and deploys to the specified Ubuntu VM using configurable secrets.
+4. **Response Formatting**: The frontend supports basic markdown formatting (bold, italic, line breaks) and safely renders HTML. Responses are displayed with proper styling.
 
-5. **Environment Configuration**: Uses dotenv for local development with `.env` file support (excluded from git).
+5. **Deployment**: The GitHub Actions workflow uses Tailscale v3 for secure network access, builds the Docker image, and deploys to the specified Ubuntu VM using configurable secrets.
+
+6. **Environment Configuration**: Uses dotenv for local development with `.env` file support (excluded from git).
 
 ## Deployment Configuration
 

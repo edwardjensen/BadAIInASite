@@ -118,6 +118,24 @@ export OPENROUTER_API_KEY="your-api-key"   # optional for cloud AI backup
 
 ## 🎨 Customization
 
+### Application Settings
+
+Edit `settings.conf` to customize application behavior:
+
+```ini
+[ai_response]
+# Maximum number of tokens for AI responses
+max_tokens = 80
+# Temperature setting (0.0 to 1.0, higher = more creative)
+temperature = 0.9
+
+[ui]
+# Minimum height for response container (pixels)
+response_min_height = 120
+# Loading timeout (milliseconds)
+loading_timeout = 30000
+```
+
 ### Adding New Prompts
 
 Edit `menu.json` to add new categories or prompts:
