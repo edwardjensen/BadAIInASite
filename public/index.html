@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bad AI In A Site</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🤖 Bad AI In A Site</h1>
+            <div class="ai-selector">
+                <button id="ai-toggle" class="ai-toggle">Local AI</button>
+                <span id="ai-status" class="ai-status">●</span>
+            </div>
+        </header>
+
+        <main class="main">
+            <div id="menu-view" class="menu-view">
+                <h2>Select a Category</h2>
+                <div id="categories" class="categories"></div>
+            </div>
+
+            <div id="prompts-view" class="prompts-view hidden">
+                <button id="back-btn" class="back-btn">← Back</button>
+                <h2 id="category-title"></h2>
+                <div id="prompts" class="prompts"></div>
+            </div>
+
+            <div id="response-view" class="response-view hidden">
+                <button id="response-back-btn" class="back-btn">← Back</button>
+                <div class="response-container">
+                    <div id="loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Generating bad advice...</p>
+                    </div>
+                    <div id="response" class="response"></div>
+                    <button id="try-again-btn" class="try-again-btn hidden">Try Again</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+# Use Node.js LTS Alpine image for smaller size and security
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Update packages and install security updates
+RUN apk update && apk upgrade
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --omit=dev
+
+# Copy application files
+COPY src/ ./src/
+COPY public/ ./public/
+COPY menu.json ./
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S badai -u 1001 -G nodejs
+
+# Change ownership of app directory
+RUN chown -R badai:nodejs /app
+
+# Switch to non-root user
+USER badai
+
+# Set environment variables
+ENV NODE_ENV=production
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
+
+# Start the application
+CMD ["npm", "start"]

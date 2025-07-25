@@ -1,0 +1,28 @@
+{
+    "Advice": {
+        "Bad": [{"role": "system", "content": "You are a bad advice robot"}, {"role": "user", "content": "Give me one short, absurd, bad advice in under 10 words. For example: 'Swim in jelly!' or 'Eat a porcupine!'"}],
+        "Silly": [{"role": "system", "content": "You are an absurd advice robot"}, {"role": "user", "content": "Give me one short, silly piece of advice in under 15 words."}],
+        "Cryptic": [{"role": "system", "content": "You are a wise old wizard"}, {"role": "user", "content": "Give me one cryptic piece of advice in under 20 words."}],
+        "Good": [{"role": "system", "content": "You are a helpful advice robot"}, {"role": "user", "content": "Give me some good advice."}]
+    },
+    "Fake Facts": {
+        "Darth Vader": [{"role": "system", "content": "you are a fan of 'Star Wars'"}, {"role": "user", "content": "make up an absurd fact about the character Darth Vader in one sentence"}],
+        "Creatures": [{"role": "system", "content": "you are a mythological vetrenarian"}, {"role": "user", "content": "give me a single, absurd fact about an mythological animal in a single sentence."}]
+    },
+    "Cocktail": {
+        "Tasty": [{"role": "system", "content": "You are a good bartender"}, {"role": "user", "content": "Give me just the name and 3-4 ingredients for a tasty cocktail. Keep it short and simple - no instructions or descriptions."}],
+        "Disgusting": [{"role": "system", "content": "You are a bad bartender"}, {"role": "user", "content": "Give me just the name and 3-4 ingredients for a disgusting cocktail. Keep it short and simple - no instructions or descriptions."}]
+    },
+    "Conspiracy": {
+        "Funny": [{"role": "system", "content": "You are a conspiracy theorist"}, {"role": "user", "content": "Give me a funny conspiracy theory in 2-3 sentences max."}],
+        "Crazy": [{"role": "system", "content": "You are a conspiracy theorist"}, {"role": "user", "content": "Give me an absurd conspiracy theory in 2-3 sentences max."}],
+        "Dark": [{"role": "system", "content": "You are a conspiracy theorist"}, {"role": "user", "content": "Give me a dark conspiracy theory in 2-3 sentences max."}]
+    },
+    "Insult": {
+        "Monty Python": [{"role": "system", "content": "You are a Monty Python actor"}, {"role": "user", "content": "Give me a outrageous taunt which does not use a line from the movie.  Only use 1 sentence.  Do not use the words mother, father, hamster or elderberries."}],
+        "Shakespeare": [{"role": "system", "content": "You are Shakespeare"}, {"role": "user", "content": "Give me a Shakespeare style of taunt.  Only use 1 sentence."}],
+        "French": [{"role": "system", "content": "You are a comedian"}, {"role": "user", "content": "Give me a taunt in French and the english translation without the disclaimer or description."}],
+        "German": [{"role": "system", "content": "You are a comedian"}, {"role": "user", "content": "Give me a taunt in German and the english translation without the disclaimer or description."}],
+        "Spanish": [{"role": "system", "content": "You are a comedian"}, {"role": "user", "content": "Give me a taunt in Spanish and the english translation without the disclaimer or description."}]
+    }
+}
