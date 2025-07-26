@@ -14,22 +14,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo -e "Host ${{ secrets.DEPLOY_HOST }}\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - name: Connect to Tailscale Network
+        uses: tailscale/github-action@v3
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:github-actions
-      
+        
       - name: Deploy menu.json
         run: |
           # Ensure config directory exists
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "mkdir -p ${{ secrets.DEPLOY_MENU_PATH }}"
           
           # Copy menu.json to server
-          scp -o StrictHostKeyChecking=no menu.json ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_MENU_PATH }}/
-          
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa menu.json ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_MENU_PATH }}/
+
           # Restart container to pick up changes
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "docker restart badaiinasite || echo 'Container restart failed - may need initial deployment'"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: |
+          rm -f ~/.ssh/id_rsa
+
+      - name: Deployment success notification
+        run: |
+          echo "🎉 Successfully deployed update to menu.json!"
+          echo "🚀 Container restarted to apply changes"

@@ -36,7 +36,7 @@ jobs:
           echo "should-build=true" >> $GITHUB_OUTPUT
         elif [ "${{ github.event_name }}" = "pull_request" ]; then
           echo "should-build=true" >> $GITHUB_OUTPUT
-        elif git diff --name-only HEAD~1 HEAD | grep -E '^(src/|public/|package\.json|Dockerfile|settings\.conf|menu\.json)'; then
+        elif git diff --name-only HEAD~1 HEAD | grep -E '^(src/|public/|package\.json|Dockerfile|settings\.conf)'; then
           echo "should-build=true" >> $GITHUB_OUTPUT
           echo "📦 App files changed - will build container"
         else
