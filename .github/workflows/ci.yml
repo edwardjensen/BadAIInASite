@@ -110,7 +110,6 @@ jobs:
 
   # Build and test container only when app files change
   container-build-and-test:
-  container-build-and-test:
     needs: check-changes
     runs-on: ubuntu-latest
     permissions:
