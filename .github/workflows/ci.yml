@@ -18,26 +18,99 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should-build: ${{ steps.changes.outputs.should-build }}
+      should-test: ${{ steps.changes.outputs.should-test }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 2
     
-    - name: Check for app file changes
+    - name: Check for changes
       id: changes
       run: |
+        # Always run basic CI checks (linting, basic tests, etc.)
+        echo "should-test=true" >> $GITHUB_OUTPUT
+        
+        # Only build Docker image if app files changed
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           echo "should-build=true" >> $GITHUB_OUTPUT
         elif [ "${{ github.event_name }}" = "pull_request" ]; then
           echo "should-build=true" >> $GITHUB_OUTPUT
         elif git diff --name-only HEAD~1 HEAD | grep -E '^(src/|public/|package\.json|Dockerfile|settings\.conf|menu\.json)'; then
           echo "should-build=true" >> $GITHUB_OUTPUT
+          echo "📦 App files changed - will build container"
         else
           echo "should-build=false" >> $GITHUB_OUTPUT
+          echo "📝 Only documentation/config changed - skipping container build"
         fi
 
-  test-and-build:
+  # Run basic CI checks on ALL changes
+  lint-and-basic-tests:
+    needs: check-changes
+    runs-on: ubuntu-latest
+    # Always run these checks, regardless of what files changed
+    if: needs.check-changes.outputs.should-test == 'true'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run basic CI checks
+      run: |
+        echo "🔍 Running basic CI checks..."
+        
+        # 1. Check for common issues
+        echo "📋 Checking for common issues..."
+        
+        # Check for TODO/FIXME comments (informational)
+        if grep -r "TODO\|FIXME" src/ 2>/dev/null; then
+          echo "ℹ️  Found TODO/FIXME comments (informational)"
+        fi
+        
+        # Check for debugging code
+        if grep -r "console\.log\|debugger\|print(" src/ 2>/dev/null; then
+          echo "⚠️  Found debugging code - consider removing for production"
+        fi
+        
+        # 2. File structure validation
+        echo "📁 Validating file structure..."
+        
+        # Check for required files
+        for file in "package.json" "Dockerfile" "README.md"; do
+          if [ -f "$file" ]; then
+            echo "✅ $file exists"
+          else
+            echo "❌ Missing required file: $file"
+            exit 1
+          fi
+        done
+        
+        # 3. Documentation checks
+        echo "📚 Checking documentation..."
+        
+        # Validate README has basic sections
+        if grep -q "## " README.md; then
+          echo "✅ README.md has proper structure"
+        else
+          echo "⚠️  README.md could use better structure (add ## headers)"
+        fi
+        
+        # 4. Configuration validation
+        echo "⚙️  Validating configuration..."
+        
+        # Check package.json is valid JSON
+        if command -v jq >/dev/null && jq empty package.json 2>/dev/null; then
+          echo "✅ package.json is valid JSON"
+        else
+          echo "❌ package.json is invalid JSON"
+          exit 1
+        fi
+        
+        echo "✅ Basic CI checks completed"
+
+  # Build and test container only when app files change
+  container-build-and-test:
+  container-build-and-test:
     needs: check-changes
     runs-on: ubuntu-latest
     permissions:
@@ -45,6 +118,7 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+    # Only run when app files changed
     if: needs.check-changes.outputs.should-build == 'true'
 
     steps:
@@ -140,7 +214,7 @@ jobs:
         echo "✅ All tests completed successfully"
 
   deployment-ready:
-    needs: [check-changes, test-and-build]
+    needs: [check-changes, container-build-and-test]
     runs-on: ubuntu-latest
     if: |
       !cancelled() && 
@@ -160,3 +234,34 @@ jobs:
         echo ""
         echo "💡 Development image available at:"
         echo "   ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-dev"
+
+  # Summary job that always runs
+  ci-summary:
+    needs: [check-changes, lint-and-basic-tests, container-build-and-test]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: CI Summary
+      run: |
+        echo "📊 CI Pipeline Summary"
+        echo "====================="
+        echo "Basic checks: ${{ needs.lint-and-basic-tests.result }}"
+        echo "Container build: ${{ needs.container-build-and-test.result || 'skipped' }}"
+        echo ""
+        
+        if [ "${{ needs.lint-and-basic-tests.result }}" = "success" ]; then
+          if [ "${{ needs.check-changes.outputs.should-build }}" = "true" ]; then
+            if [ "${{ needs.container-build-and-test.result }}" = "success" ]; then
+              echo "✅ All CI checks passed - ready for release!"
+            else
+              echo "❌ Container build failed"
+              exit 1
+            fi
+          else
+            echo "✅ Documentation/config changes validated"
+          fi
+        else
+          echo "❌ Basic CI checks failed"
+          exit 1
+        fi
