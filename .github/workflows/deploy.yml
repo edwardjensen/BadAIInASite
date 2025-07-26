@@ -1,10 +1,10 @@
 name: Build and Deploy Bad AI In A Site
 
 on:
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 env:
@@ -95,8 +95,8 @@ jobs:
           # Run new container
           docker run -d \
             --name badaiinasite \
+            --network ${{ secrets.NPM_DOCKER_NETWORK }} \
             --restart unless-stopped \
-            -p 3000:3000 \
             -e OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
             -e LM_STUDIO_URL="http://${{ secrets.LM_STUDIO_ADDRESS }}:1234/v1/chat/completions" \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
