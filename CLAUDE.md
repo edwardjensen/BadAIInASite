@@ -8,7 +8,7 @@ This is the "Bad AI In A Site" web application - a web adaptation of the physica
 
 ## Project Status
 
-**IMPORTANT**: This is a greenfield project in the initial planning phase. The codebase currently only contains a specification document (`/prompt/context.md`). All implementation needs to be created from scratch following the specifications.
+The project is actively developed with a working web application including frontend UI, backend API, AI integration, and live reload functionality for development.
 
 ## Key Technical Requirements
 
@@ -31,7 +31,7 @@ cp .env.example .env
 # Edit .env with your LM Studio server address and actual OpenRouter API key
 # (Safe to use real credentials in .env - this file is excluded from git)
 
-# Development server
+# Development server (includes live reload)
 npm run dev
 
 # Production server
@@ -85,11 +85,30 @@ badaiinasite/
 
 4. **Response Formatting**: The frontend supports basic markdown formatting (bold, italic, line breaks) and safely renders HTML. Responses are displayed with proper styling.
 
-5. **Deployment**: The GitHub Actions workflow uses Tailscale v3 for secure network access, builds the Docker image, and deploys to the specified Ubuntu VM using configurable secrets.
+5. **Deployment**: The GitHub Actions workflow uses tag-based deployment, triggering on version tags (e.g., v1.0.0). Uses Tailscale v3 for secure network access, builds the Docker image, and deploys to the specified Ubuntu VM using configurable secrets.
 
 6. **Environment Configuration**: Uses dotenv for local development with `.env` file support (excluded from git).
 
+7. **Live Reload**: Development mode includes automatic browser reload when frontend files change. Uses Socket.IO for WebSocket communication and chokidar for file watching.
+
 ## Deployment Configuration
+
+### Tag-Based Deployment
+The CI/CD pipeline automatically builds Docker images, creates GitHub releases, and deploys to production when version tags are pushed:
+
+```bash
+# Create and push a version tag to trigger full release pipeline
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+**Workflow Features:**
+- ✅ Automatic Docker image building and pushing to GitHub Container Registry
+- ✅ GitHub release creation with auto-generated changelog
+- ✅ Production deployment via Tailscale VPN
+- ✅ Container cleanup (keeps last 3 versions)
+- ✅ Manual deployment testing via workflow_dispatch
+- ✅ Prerelease detection for alpha/beta/rc/dev tags
 
 ### GitHub Secrets Required
 The automated deployment requires these repository secrets:
@@ -100,6 +119,7 @@ The automated deployment requires these repository secrets:
 - `OPENROUTER_API_KEY`: OpenRouter API key for cloud AI fallback
 - `TS_OAUTH_CLIENT_ID`: Tailscale OAuth Client ID for GitHub Actions network access (v3)
 - `TS_OAUTH_SECRET`: Tailscale OAuth Secret for GitHub Actions network access (v3)
+- `NPM_DOCKER_NETWORK`: Docker network name for container networking (e.g., "npm_default")
 
 ### Local Deployment
 For manual server deployment, set these environment variables:
