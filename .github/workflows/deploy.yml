@@ -78,9 +78,9 @@ jobs:
         cache-to: type=gha,mode=max
 
   deploy-to-server:
-    needs: [check-changes, build-container]
+    needs: check-changes
     runs-on: ubuntu-latest
-    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push' && (needs.build-container.result == 'success' || needs.build-container.result == 'skipped')
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     steps:
     - name: Setup SSH key
