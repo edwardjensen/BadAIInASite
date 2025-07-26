@@ -4,10 +4,20 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs').promises;
 const ini = require('ini');
+const http = require('http');
+const { Server } = require('socket.io');
+const chokidar = require('chokidar');
 
 class BadAIServer {
     constructor() {
         this.app = express();
+        this.server = http.createServer(this.app);
+        this.io = new Server(this.server, {
+            cors: {
+                origin: "*",
+                methods: ["GET", "POST"]
+            }
+        });
         this.menu = {};
         this.config = {};
     }
@@ -17,6 +27,7 @@ class BadAIServer {
         this.setupAIConfiguration();
         this.setupMiddleware();
         this.setupRoutes();
+        this.setupLiveReload();
         await this.loadMenu();
     }
 
@@ -42,6 +53,9 @@ class BadAIServer {
                 server: {
                     default_port: 3000,
                     api_timeout: 30000
+                },
+                disclaimers: {
+                    disclaimer_1: '⚠️ This is a fun project! AI responses are intentionally bad and should not be taken seriously.'
                 }
             };
         }
@@ -81,6 +95,16 @@ class BadAIServer {
 
         // Get UI configuration
         this.app.get('/api/config', (req, res) => {
+            // Extract disclaimers from config
+            const disclaimers = [];
+            if (this.config.disclaimers) {
+                Object.keys(this.config.disclaimers).forEach(key => {
+                    if (key.startsWith('disclaimer_')) {
+                        disclaimers.push(this.config.disclaimers[key]);
+                    }
+                });
+            }
+            
             res.json({
                 ui: {
                     response_min_height: this.config.ui.response_min_height,
@@ -89,7 +113,10 @@ class BadAIServer {
                 ai_response: {
                     max_tokens: this.config.ai_response.max_tokens,
                     temperature: this.config.ai_response.temperature
-                }
+                },
+                disclaimers: disclaimers.length > 0 ? disclaimers : [
+                    '⚠️ This is a fun project! AI responses are intentionally bad and should not be taken seriously.'
+                ]
             });
         });
 
@@ -114,6 +141,22 @@ class BadAIServer {
                 console.error('Chat error:', error);
                 res.status(500).json({ 
                     error: 'Something went wrong! Even my errors are bad at being helpful.' 
+                });
+            }
+        });
+
+        // Version info endpoint
+        this.app.get('/api/version', async (req, res) => {
+            try {
+                const versionInfo = await this.getVersionInfo();
+                res.json(versionInfo);
+            } catch (error) {
+                console.error('Error getting version info:', error);
+                res.json({
+                    version: 'unknown',
+                    commit: 'unknown',
+                    buildDate: new Date().toISOString(),
+                    environment: process.env.NODE_ENV || 'development'
                 });
             }
         });
@@ -221,13 +264,96 @@ class BadAIServer {
         }
     }
 
+    async getVersionInfo() {
+        const { execSync } = require('child_process');
+        
+        try {
+            // Try to get git information
+            const gitTag = execSync('git describe --tags --exact-match HEAD 2>/dev/null || echo ""', 
+                { encoding: 'utf8', timeout: 5000 }).trim();
+            const gitCommit = execSync('git rev-parse --short HEAD 2>/dev/null || echo "unknown"', 
+                { encoding: 'utf8', timeout: 5000 }).trim();
+            const gitBranch = execSync('git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"', 
+                { encoding: 'utf8', timeout: 5000 }).trim();
+            
+            // Try to get package.json version as fallback
+            let packageVersion = 'unknown';
+            try {
+                const packageJson = require('../package.json');
+                packageVersion = packageJson.version;
+            } catch (e) {
+                // package.json not found or invalid
+            }
+            
+            const version = gitTag || packageVersion;
+            const buildDate = process.env.BUILD_DATE || new Date().toISOString();
+            
+            return {
+                version,
+                commit: gitCommit,
+                branch: gitBranch,
+                buildDate,
+                environment: process.env.NODE_ENV || 'development',
+                nodeVersion: process.version
+            };
+        } catch (error) {
+            console.warn('Could not get git info, using fallback:', error.message);
+            
+            // Fallback to package.json and environment
+            let packageVersion = 'unknown';
+            try {
+                const packageJson = require('../package.json');
+                packageVersion = packageJson.version;
+            } catch (e) {
+                // package.json not found or invalid
+            }
+            
+            return {
+                version: packageVersion,
+                commit: 'unknown',
+                branch: 'unknown',
+                buildDate: process.env.BUILD_DATE || new Date().toISOString(),
+                environment: process.env.NODE_ENV || 'development',
+                nodeVersion: process.version
+            };
+        }
+    }
+
+    setupLiveReload() {
+        // Only enable live reload in development
+        if (process.env.NODE_ENV === 'production') return;
+
+        console.log('🔄 Setting up live reload...');
+        
+        // Watch public directory for changes
+        const publicPath = path.join(__dirname, '../public');
+        const watcher = chokidar.watch(publicPath, {
+            ignored: /node_modules/,
+            persistent: true
+        });
+
+        watcher.on('change', (filePath) => {
+            console.log(`📁 File changed: ${path.relative(process.cwd(), filePath)}`);
+            this.io.emit('reload');
+        });
+
+        // Handle WebSocket connections
+        this.io.on('connection', (socket) => {
+            console.log('🔌 Live reload client connected');
+            
+            socket.on('disconnect', () => {
+                console.log('🔌 Live reload client disconnected');
+            });
+        });
+    }
+
     async start() {
         await this.initialize();
         
         // Use localhost for development, 0.0.0.0 for production
         const bindAddress = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
         
-        this.app.listen(this.port, bindAddress, () => {
+        this.server.listen(this.port, bindAddress, () => {
             console.log(`🤖 Bad AI In A Site server running on port ${this.port}`);
             console.log(`📱 Open http://localhost:${this.port} to access the site`);
             console.log(`⚙️  Max tokens: ${this.config.ai_response.max_tokens}, Temperature: ${this.config.ai_response.temperature}`);

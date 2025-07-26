@@ -25,6 +25,14 @@ Created a complete web application called "Bad AI In A Site" - a web adaptation 
   - Text alignment centered in response boxes
   - Localhost-only binding for development server
 
+### Session 4 - Release & Enhancement Features
+- **Docker Distribution**: Added GitHub Container Registry integration to README.md
+- **Version 1.0.0 Release**: Created automated release workflow triggered by git tags
+- **Build Optimization**: Added smart conditional builds that skip when only docs change
+- **Responsive Theming**: Implemented automatic light/dark mode based on system preferences
+- **Dynamic Footer**: Added version info from git tags, GitHub links, and configurable disclaimers
+- **Configurable Content**: Made disclaimers configurable in settings.conf with multiple random options
+
 ## Key Features Implemented
 - **Mobile-First Design**: iPhone-optimized interface with fixed-position UI elements
 - **Menu-Driven Interaction**: Uses `menu.json` for predefined prompts instead of free text

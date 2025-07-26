@@ -44,7 +44,9 @@ class BadAI {
         await this.loadMenu();
         console.log('Menu loaded:', this.menu);
         await this.loadConfig();
+        await this.loadVersionInfo();
         this.setupEventListeners();
+        this.setupLiveReload();
         this.renderCategories();
         this.checkAIStatus();
     }
@@ -57,13 +59,18 @@ class BadAI {
             // Apply UI configuration
             document.documentElement.style.setProperty('--response-min-height', `${this.config.ui.response_min_height}px`);
             
+            // Set random disclaimer
+            this.setRandomDisclaimer();
+            
             console.log('Configuration loaded:', this.config);
         } catch (error) {
             console.error('Failed to load configuration:', error);
             this.config = {
                 ui: { response_min_height: 120, loading_timeout: 30000 },
-                ai_response: { max_tokens: 80, temperature: 0.9 }
+                ai_response: { max_tokens: 80, temperature: 0.9 },
+                disclaimers: ['⚠️ This is a fun project! AI responses are intentionally bad and should not be taken seriously.']
             };
+            this.setRandomDisclaimer();
         }
     }
 
@@ -79,6 +86,50 @@ class BadAI {
         } catch (error) {
             console.error('Failed to load menu:', error);
             this.showError('Failed to load menu. Please refresh the page.');
+        }
+    }
+
+    async loadVersionInfo() {
+        try {
+            const response = await fetch('/api/version');
+            const versionInfo = await response.json();
+            this.displayVersionInfo(versionInfo);
+        } catch (error) {
+            console.error('Failed to load version info:', error);
+            this.displayVersionInfo({
+                version: 'unknown',
+                commit: 'unknown',
+                environment: 'development'
+            });
+        }
+    }
+
+    displayVersionInfo(versionInfo) {
+        const versionElement = document.getElementById('version-text');
+        if (versionElement) {
+            // Remove 'v' prefix if it exists in the version string
+            const cleanVersion = versionInfo.version !== 'unknown' 
+                ? versionInfo.version.replace(/^v/, '')
+                : versionInfo.commit;
+            
+            const versionText = versionInfo.version !== 'unknown' 
+                ? `v${cleanVersion}` 
+                : `${cleanVersion} (${versionInfo.environment})`;
+            
+            // Only show build date for production, nothing extra for development
+            const buildInfo = versionInfo.environment === 'production' 
+                ? ` • ${versionInfo.buildDate?.split('T')[0] || 'unknown'}`
+                : '';
+            
+            versionElement.textContent = `${versionText}${buildInfo}`;
+        }
+    }
+
+    setRandomDisclaimer() {
+        const disclaimerElement = document.querySelector('.disclaimer p');
+        if (disclaimerElement && this.config.disclaimers && this.config.disclaimers.length > 0) {
+            const randomIndex = Math.floor(Math.random() * this.config.disclaimers.length);
+            disclaimerElement.textContent = this.config.disclaimers[randomIndex];
         }
     }
 
@@ -251,6 +302,31 @@ class BadAI {
         const responseElement = document.getElementById('response');
         responseElement.innerHTML = this.sanitizeHtml(message);
         responseElement.classList.add('error');
+    }
+
+    setupLiveReload() {
+        // Only enable live reload in development
+        if (typeof io === 'undefined') {
+            console.log('Socket.IO not available - live reload disabled');
+            return;
+        }
+
+        console.log('🔄 Setting up live reload client...');
+        
+        const socket = io();
+        
+        socket.on('connect', () => {
+            console.log('🔌 Connected to live reload server');
+        });
+        
+        socket.on('reload', () => {
+            console.log('🔄 Reloading page...');
+            window.location.reload();
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('🔌 Disconnected from live reload server');
+        });
     }
 }
 

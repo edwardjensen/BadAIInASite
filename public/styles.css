@@ -263,3 +263,140 @@ h2 {
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
+/* Light mode support based on system preference */
+@media (prefers-color-scheme: light) {
+    body {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+    
+    .header {
+        background-color: #ffffff;
+        border-bottom: 2px solid #ff6b6b;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .category-btn, .prompt-btn {
+        background-color: #ffffff;
+        color: #212529;
+        border: 2px solid #dee2e6;
+    }
+    
+    .category-btn:hover, .prompt-btn:hover {
+        background-color: #f8f9fa;
+        border-color: #ff6b6b;
+    }
+    
+    .back-btn {
+        background-color: #6c757d;
+        color: #ffffff;
+    }
+    
+    .back-btn:hover {
+        background-color: #5a6268;
+    }
+    
+    .response {
+        background-color: #ffffff;
+        border: 2px solid #ff6b6b;
+        color: #212529;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .ai-toggle {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+    
+    .ai-toggle:hover {
+        background-color: #dee2e6;
+    }
+    
+    .spinner {
+        border: 4px solid #dee2e6;
+        border-top: 4px solid #ff6b6b;
+    }
+
+    .footer {
+        background-color: #ffffff;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .footer-links a {
+        color: #ff6b6b;
+    }
+
+    .footer-links a:hover {
+        color: #ff5252;
+    }
+}
+
+/* Footer */
+.footer {
+    background-color: #2d2d2d;
+    border-top: 1px solid #444;
+    padding: 0.75rem 1rem;
+    margin-top: auto;
+    text-align: center;
+    font-size: 0.75rem;
+    line-height: 1.3;
+}
+
+.footer-content {
+    max-width: 500px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.footer-top span {
+    color: #999;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+}
+
+.footer-top a {
+    color: #ff6b6b;
+    text-decoration: none;
+    transition: color 0.3s;
+    font-size: 0.75rem;
+}
+
+.footer-top a:hover {
+    color: #ff5252;
+    text-decoration: underline;
+}
+
+.disclaimer {
+    color: #ccc;
+    font-size: 0.7rem;
+    line-height: 1.2;
+}
+
+.disclaimer p {
+    margin: 0;
+}
+
+/* Mobile adjustments for footer */
+@media (min-width: 768px) {
+    .footer {
+        padding: 0.5rem 1rem;
+    }
+    
+    .disclaimer {
+        text-align: center;
+    }
+    
+    .footer-top span, .footer-top a, .disclaimer {
+        font-size: 0.75rem;
+    }
+}
