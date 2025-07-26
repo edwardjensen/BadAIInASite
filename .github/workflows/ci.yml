@@ -1,6 +1,6 @@
 # .github/workflows/ci.yml
 # Replaces deploy.yml - builds and tests but does NOT deploy
-name: Continuous Integration
+name: Testing and CI pipeline on all pushes and PRs
 
 on:
   push:

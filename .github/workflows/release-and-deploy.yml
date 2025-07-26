@@ -1,10 +1,12 @@
 # .github/workflows/release-and-deploy.yml
 # Replaces release.yml - creates releases AND deploys to production
-name: Release and Deploy
+name: Deploy to production on new version releases
 
 on:
   push:
     tags: [ 'v*' ]
+    paths-ignore:
+      - 'menu.json'  # Exclude menu-only changes from full deployment
   workflow_dispatch:  # Add this for manual testing
     inputs:
       test_deployment:
@@ -214,12 +216,18 @@ jobs:
           docker stop badaiinasite || true
           docker rm badaiinasite || true
           
+          # Ensure menu config directory exists and update menu.json from repo
+          mkdir -p ${{ secrets.DEPLOY_MENU_PATH }}
+          echo "📋 Updating menu.json from repository version..."
+          docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} cat /app/menu.json > ${{ secrets.DEPLOY_MENU_PATH }}/menu.json
+          
           # Pull and run the image
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
           docker run -d \
             --name badaiinasite \
             --network ${{ secrets.NPM_DOCKER_NETWORK }} \
             --restart unless-stopped \
+            -v ${{ secrets.DEPLOY_MENU_PATH }}/menu.json:/app/menu.json \
             -e OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
             -e LM_STUDIO_URL="http://${{ secrets.LM_STUDIO_ADDRESS }}:1234/v1/chat/completions" \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}

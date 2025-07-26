@@ -1,0 +1,35 @@
+name: Update menu.json file only and reload app container
+
+on:
+  push:
+    paths:
+      - 'menu.json'
+    branches:
+      - main
+
+jobs:
+  deploy-menu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+      
+      - name: Deploy menu.json
+        run: |
+          # Ensure config directory exists
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "mkdir -p ${{ secrets.DEPLOY_MENU_PATH }}"
+          
+          # Copy menu.json to server
+          scp -o StrictHostKeyChecking=no menu.json ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_MENU_PATH }}/
+          
+          # Restart container to pick up changes
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "docker restart badaiinasite || echo 'Container restart failed - may need initial deployment'"
