@@ -103,7 +103,7 @@ jobs:
     - name: Wait for Tailscale connection
       run: |
         # Wait for Tailscale to be fully connected
-        timeout 30s bash -c 'until tailscale ping ${{ secrets.DEPLOY_HOST }}; do sleep 2; done'
+        timeout 60s bash -c 'until tailscale ping ${{ secrets.DEPLOY_HOST }}; do sleep 2; done'
 
     - name: Deploy to server
       run: |
