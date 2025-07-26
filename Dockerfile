@@ -1,6 +1,11 @@
 # Use Node.js LTS Alpine image for smaller size and security
 FROM node:20-alpine
 
+# Accept build arguments for version info
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ARG BUILD_COMMIT=unknown
+
 # Set working directory
 WORKDIR /app
 
@@ -30,6 +35,9 @@ USER badai
 
 # Set environment variables
 ENV NODE_ENV=production
+ENV BUILD_VERSION=${BUILD_VERSION}
+ENV BUILD_DATE=${BUILD_DATE}
+ENV BUILD_COMMIT=${BUILD_COMMIT}
 
 # Expose port
 EXPOSE 3000

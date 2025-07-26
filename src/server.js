@@ -268,7 +268,19 @@ class BadAIServer {
         const { execSync } = require('child_process');
         
         try {
-            // Try to get git information
+            // Check for build-time environment variables first (for production)
+            if (process.env.BUILD_VERSION && process.env.BUILD_VERSION !== 'unknown') {
+                return {
+                    version: process.env.BUILD_VERSION,
+                    commit: process.env.BUILD_COMMIT || 'unknown',
+                    branch: 'main',
+                    buildDate: process.env.BUILD_DATE || new Date().toISOString(),
+                    environment: process.env.NODE_ENV || 'development',
+                    nodeVersion: process.version
+                };
+            }
+            
+            // Fall back to git information (for development)
             const gitTag = execSync('git describe --tags --exact-match HEAD 2>/dev/null || echo ""', 
                 { encoding: 'utf8', timeout: 5000 }).trim();
             const gitCommit = execSync('git rev-parse --short HEAD 2>/dev/null || echo "unknown"', 

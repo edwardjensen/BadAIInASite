@@ -54,6 +54,7 @@ jobs:
         VERSION=${GITHUB_REF#refs/tags/v}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "tag=$GITHUB_REF_NAME" >> $GITHUB_OUTPUT
+        echo "build-date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
         
         # Check if this is a prerelease
         if [[ "$VERSION" =~ (alpha|beta|rc|dev) ]]; then
@@ -122,6 +123,10 @@ jobs:
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        build-args: |
+          BUILD_VERSION=${{ steps.version.outputs.tag }}
+          BUILD_DATE=${{ steps.version.outputs.build-date }}
+          BUILD_COMMIT=${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
