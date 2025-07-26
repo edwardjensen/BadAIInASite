@@ -15,8 +15,8 @@ The project is actively developed with a working web application including front
 1. **Mobile-First Design**: Optimize for iPhone displays with fixed-position UI elements
 2. **Menu-Driven Interaction**: Use `menu.json` for predefined prompts instead of free text input
 3. **Dual AI Backend Support**:
-   - Local: LM Studio API (http://localhost:1234/v1/chat/completions)
-   - Cloud: OpenRouter API (https://openrouter.ai/api/v1/chat/completions)
+   - Local: LM Studio API (<http://localhost:1234/v1/chat/completions>)
+   - Cloud: OpenRouter API (<https://openrouter.ai/api/v1/chat/completions>)
 4. **Containerization**: Must run in Docker with no external dependencies
 5. **Automated Deployment**: GitHub Actions → Ubuntu VM on Tailscale VPN
 
@@ -47,19 +47,22 @@ docker run -p 3000:3000 badaiinasite
 ## Architecture Guidelines
 
 ### Frontend Structure
+
 - Create a single-page application with menu-driven interface
 - Implement responsive design focusing on mobile (iPhone) first
 - Use fixed positioning for header and input area
 - Keep the UI simple and focused on the chat interaction
 
 ### Backend Structure
+
 - Implement API endpoint(s) for chat interactions
 - Support both LM Studio and OpenRouter backends
 - Handle API key management securely (environment variables)
 - Implement proper error handling for offline scenarios
 
 ### File Organization
-```
+
+```text
 badaiinasite/
 ├── src/
 │   └── server.js     # Express server with AI integration
@@ -96,10 +99,13 @@ badaiinasite/
 ## Deployment Configuration
 
 ### Dual Deployment System
+
 The project features two distinct deployment workflows for maximum flexibility:
 
 #### 1. Release Deployment (Full App Updates)
+
 For version releases with code changes:
+
 ```bash
 # Create and push a version tag to trigger full release pipeline
 git tag v1.0.0
@@ -107,6 +113,7 @@ git push origin v1.0.0
 ```
 
 **Workflow Features:**
+
 - ✅ Automatic Docker image building with version info baked in
 - ✅ GitHub release creation with auto-generated changelog
 - ✅ Production deployment via Tailscale VPN
@@ -116,7 +123,9 @@ git push origin v1.0.0
 - ✅ Prerelease detection for alpha/beta/rc/dev tags
 
 #### 2. Menu-Only Deployment (Fast Updates)
+
 For quick menu changes without full releases:
+
 ```bash
 # Edit menu.json and push to main branch
 git add menu.json
@@ -125,17 +134,20 @@ git push origin main
 ```
 
 **Workflow Features:**
+
 - ⚡ Fast deployment (~30 seconds)
 - 🔄 Container restart only (no rebuild)
 - 📁 Volume-mounted menu.json for persistence
 - 🚀 Instant menu updates without CI/CD overhead
 
 ### GitHub Secrets Required
+
 The automated deployment requires these repository secrets:
+
 - `DEPLOY_SSH_KEY`: Private SSH key for Ubuntu server access
 - `DEPLOY_HOST`: Tailscale IP/hostname of deployment server (e.g., "100.106.49.116")
 - `DEPLOY_USER`: Username for SSH access (e.g., "edwardjensen")
-- `DEPLOY_MENU_PATH`: Server path for menu.json storage (e.g., "/media/develop/container-configs/badai")
+- `DEPLOY_MENU_PATH`: Server path for menu.json storage (e.g., "/foo/bar/badai")
 - `LM_STUDIO_ADDRESS`: Tailscale IP/hostname of LM Studio server (e.g., "100.106.49.116")
 - `OPENROUTER_API_KEY`: OpenRouter API key for cloud AI fallback
 - `TS_OAUTH_CLIENT_ID`: Tailscale OAuth Client ID for GitHub Actions network access (v3)
@@ -143,7 +155,9 @@ The automated deployment requires these repository secrets:
 - `NPM_DOCKER_NETWORK`: Docker network name for container networking (e.g., "npm_default")
 
 ### Local Deployment
+
 For manual server deployment, set these environment variables:
+
 ```bash
 export LM_STUDIO_ADDRESS="your-lm-studio-ip"  # defaults to localhost
 export OPENROUTER_API_KEY="your-api-key"      # optional

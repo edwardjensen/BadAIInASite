@@ -23,6 +23,7 @@ A web adaptation of the ["Bad AI In A Box" (BAIIAB) project](https://github.com/
 ### Development
 
 1. **Clone and install**:
+
    ```bash
    git clone https://github.com/edwardjensen/badaiinasite.git
    cd badaiinasite
@@ -30,6 +31,7 @@ A web adaptation of the ["Bad AI In A Box" (BAIIAB) project](https://github.com/
    ```
 
 2. **Set up environment**:
+
    ```bash
    # Copy the example environment file
    cp .env.example .env
@@ -41,11 +43,12 @@ A web adaptation of the ["Bad AI In A Box" (BAIIAB) project](https://github.com/
    ```
 
 3. **Run locally**:
+
    ```bash
    npm run dev
    ```
 
-4. **Open in browser**: http://localhost:3000
+4. **Open in browser**: <http://localhost:3000>
 
 ### Docker
 
@@ -63,7 +66,7 @@ docker run -d -p 3000:3000 --name badaiinasite badaiinasite
 
 ## 🏗️ Architecture
 
-```
+```plain
 badaiinasite/
 ├── src/
 │   └── server.js          # Express server with AI integration
@@ -241,6 +244,7 @@ For automated deployment, configure these secrets in your GitHub repository:
 3. Copy Client ID and Secret to GitHub Secrets
 
 ### Testing
+
 ```bash
 # Test the application locally
 npm run dev
