@@ -48,10 +48,14 @@ A web adaptation of the ["Bad AI In A Box" (BAIIAB) project](https://github.com/
 ### Docker
 
 ```bash
-# Build the image
-docker build -t badaiinasite .
+# Pull from GitHub Container Registry
+docker pull ghcr.io/edwardjensen/badaiinasite:latest
 
-# Run the container
+# Run the pre-built container
+docker run -d -p 3000:3000 --name badaiinasite ghcr.io/edwardjensen/badaiinasite:latest
+
+# Or build locally
+docker build -t badaiinasite .
 docker run -d -p 3000:3000 --name badaiinasite badaiinasite
 ```
 
