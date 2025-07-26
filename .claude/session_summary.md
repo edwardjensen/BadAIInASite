@@ -6,6 +6,13 @@ Created a complete web application called "Bad AI In A Site" - a web adaptation 
 ## Project Status
 ✅ **COMPLETED** - Full implementation from greenfield project to production-ready application with automated deployment.
 
+## Recent Updates (Session 2)
+- Fixed GitHub Actions deployment workflow issues (GHCR authentication, Tailscale connectivity)
+- Optimized CI/CD to skip container builds for non-essential file changes while always running deployment
+- Added alphabetical sorting to the frontend UI menu display
+- Integrated logo assets as favicon and in the site header  
+- Added logo to README.md
+
 ## Key Features Implemented
 - **Mobile-First Design**: iPhone-optimized interface with fixed-position UI elements
 - **Menu-Driven Interaction**: Uses `menu.json` for predefined prompts instead of free text

@@ -1,5 +1,9 @@
 # 🤖 Bad AI In A Site
 
+<div align="center">
+  <img src="./public/baiias_logo_readme.png" alt="Bad AI In A Site Logo" width="400">
+</div>
+
 A web adaptation of the ["Bad AI In A Box" (BAIIAB) project](https://github.com/lastcoolnameleft/baiiab/) that hosts a hilariously "bad" AI chatbot designed to give intentionally unhelpful, nonsensical, or absurd advice.
 
 ## 🎯 Features
