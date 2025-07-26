@@ -1,8 +1,10 @@
-# 🤖 Bad AI In A Site
+# Bad AI In A Site
 
-<div align="center">
-  <img src="./public/baiias_logo_readme.png" alt="Bad AI In A Site Logo" width="400">
-</div>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./public/baiias_logo_readme_dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="./public/baiias_logo_readme.png">
+  <img alt="Bad AI In A Site" src="./public/baiias_logo_readme.png">
+</picture>
 
 A web adaptation of the ["Bad AI In A Box" (BAIIAB) project](https://github.com/lastcoolnameleft/baiiab/) that hosts a hilariously "bad" AI chatbot designed to give intentionally unhelpful, nonsensical, or absurd advice.
 
@@ -202,10 +204,10 @@ For automated deployment, configure these secrets in your GitHub repository:
 **Go to Settings → Secrets and variables → Actions → New repository secret**
 
 - `DEPLOY_SSH_KEY`: Private SSH key for server access (contents of `~/.ssh/id_rsa`)
-- `DEPLOY_HOST`: Tailscale IP address of your deployment server (e.g., "100.106.49.116")
+- `DEPLOY_HOST`: Tailscale IP address of your deployment server (e.g., "100.100.12.12")
 - `DEPLOY_USER`: Username for SSH access to deployment server (e.g., "deploy_user")
-- `DEPLOY_MENU_PATH`: Server path for menu.json storage (e.g., "/media/develop/container-configs/badai")
-- `LM_STUDIO_ADDRESS`: Tailscale IP address of your LM Studio server (e.g., "100.106.49.116")
+- `DEPLOY_MENU_PATH`: Server folder path for menu.json storage (e.g., "/foo/bar")
+- `LM_STUDIO_ADDRESS`: Tailscale IP address of your LM Studio server (e.g., "100.100.12.13")
 - `OPENROUTER_API_KEY`: Your OpenRouter API key for cloud AI backup
 - `NPM_DOCKER_NETWORK`: Docker network name for container networking (e.g., "npm_default")
 - `TS_OAUTH_CLIENT_ID`: Tailscale OAuth Client ID for GitHub Actions access
