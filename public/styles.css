@@ -171,7 +171,7 @@ h2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: left;
+    text-align: center;
     white-space: pre-line;
 }
 

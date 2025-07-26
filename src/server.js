@@ -33,7 +33,7 @@ class BadAIServer {
                 ai_response: {
                     max_tokens: 80,
                     temperature: 0.9,
-                    concise_prompt: 'Keep your response concise (under 100 words). Use simple formatting without markdown. Be direct and punchy.'
+                    concise_prompt: 'Be hilariously unhelpful and mischievous! Keep responses concise (under 100 words). Use NO formatting - no markdown, no asterisks, no underscores, just plain text. Be playful, absurd, and funny. Embrace the silly chaos!'
                 },
                 ui: {
                     response_min_height: 120,
@@ -224,7 +224,10 @@ class BadAIServer {
     async start() {
         await this.initialize();
         
-        this.app.listen(this.port, '0.0.0.0', () => {
+        // Use localhost for development, 0.0.0.0 for production
+        const bindAddress = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
+        
+        this.app.listen(this.port, bindAddress, () => {
             console.log(`🤖 Bad AI In A Site server running on port ${this.port}`);
             console.log(`📱 Open http://localhost:${this.port} to access the site`);
             console.log(`⚙️  Max tokens: ${this.config.ai_response.max_tokens}, Temperature: ${this.config.ai_response.temperature}`);

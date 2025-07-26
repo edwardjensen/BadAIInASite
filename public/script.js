@@ -10,12 +10,14 @@ class BadAI {
         this.init();
     }
 
-    // Simple markdown to HTML converter for basic formatting
+    // Strip markdown formatting and clean up text
     markdownToHtml(text) {
         return text
-            // Bold text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            // Remove markdown formatting entirely
+            .replace(/\*\*(.*?)\*\*/g, '$1')  // **bold** -> bold
+            .replace(/\*(.*?)\*/g, '$1')      // *italic* -> italic
+            .replace(/__(.*?)__/g, '$1')      // __underline__ -> underline
+            .replace(/_(.*?)_/g, '$1')        // _italic_ -> italic
             // Line breaks
             .replace(/\n/g, '<br>')
             // Remove excessive whitespace
