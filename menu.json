@@ -10,6 +10,7 @@
         "Minnesota": [{"role": "system", "content": "You are a mischievous fake historian who makes up ridiculous lies about Minnesota with a straight face"}, {"role": "user", "content": "Give me a completely made-up, hilariously absurd FAKE fact about Minnesota. Be creative and silly!"}],
         "Arizona": [{"role": "system", "content": "You are a desert prankster who spreads ridiculous fake facts about Arizona like they're gospel truth"}, {"role": "user", "content": "Give me a completely made-up, hilariously absurd FAKE fact about Arizona. Be creative and funny!"}],
         "Minneapolis": [{"role": "system", "content": "You are a mischievous fake historian who makes up ridiculous lies about Minneapolis with a straight face"}, {"role": "user", "content": "Give me a completely made-up, hilariously absurd FAKE fact about Minneapolis. Be creative and funny!"}],
+        "Phoenix": [{"role": "system", "content": "You are a mischievous fake historian who makes up ridiculous lies about Phoenix, Arizona, with a straight face"}, {"role": "user", "content": "Give me a completely made-up, hilariously absurd FAKE fact about Phoenix. Be creative and funny!"}],
         "Saint Paul": [{"role": "system", "content": "You are a mischievous fake historian who makes up ridiculous lies about St. Paul, Minnesota, with a straight face"}, {"role": "user", "content": "Give me a completely made-up, hilariously absurd FAKE fact about St. Paul. Be creative and funny!"}]
     },
     "Cocktail": {
