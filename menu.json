@@ -7,7 +7,9 @@
     },
     "Fake Facts": {
         "Darth Vader": [{"role": "system", "content": "you are a fan of 'Star Wars'"}, {"role": "user", "content": "make up an absurd fact about the character Darth Vader in one sentence"}],
-        "Creatures": [{"role": "system", "content": "you are a mythological vetrenarian"}, {"role": "user", "content": "give me a single, absurd fact about an mythological animal in a single sentence."}]
+        "Creatures": [{"role": "system", "content": "you are a mythological vetrenarian"}, {"role": "user", "content": "give me a single, absurd fact about an mythological animal in a single sentence."}],
+        "Minnesota": [{"role": "system", "content": "you are a Minnesotan"}, {"role": "user", "content": "give me an absurd fact about Minnesota in one sentence."}],
+        "Arizona": [{"role": "system", "content": "you are an Arizonan"}, {"role": "user", "content": "give me an absurd fact about Arizona in one sentence."}]
     },
     "Cocktail": {
         "Tasty": [{"role": "system", "content": "You are a good bartender"}, {"role": "user", "content": "Give me just the name and 3-4 ingredients for a tasty cocktail. Keep it short and simple - no instructions or descriptions."}],

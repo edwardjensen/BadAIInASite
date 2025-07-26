@@ -38,7 +38,9 @@ class BadAI {
     }
 
     async init() {
+        console.log('Initializing BadAI...');
         await this.loadMenu();
+        console.log('Menu loaded:', this.menu);
         await this.loadConfig();
         this.setupEventListeners();
         this.renderCategories();
@@ -65,8 +67,13 @@ class BadAI {
 
     async loadMenu() {
         try {
+            console.log('Fetching menu from /api/menu...');
             const response = await fetch('/api/menu');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             this.menu = await response.json();
+            console.log('Menu fetched successfully');
         } catch (error) {
             console.error('Failed to load menu:', error);
             this.showError('Failed to load menu. Please refresh the page.');
@@ -142,7 +149,12 @@ class BadAI {
         const categoriesContainer = document.getElementById('categories');
         categoriesContainer.innerHTML = '';
 
-        Object.keys(this.menu).forEach(category => {
+        // Sort categories alphabetically
+        const sortedCategories = Object.keys(this.menu).sort((a, b) => 
+            a.localeCompare(b, undefined, { sensitivity: 'base' })
+        );
+
+        sortedCategories.forEach(category => {
             const button = document.createElement('button');
             button.className = 'category-btn';
             button.textContent = category;
@@ -165,7 +177,12 @@ class BadAI {
         const promptsContainer = document.getElementById('prompts');
         promptsContainer.innerHTML = '';
 
-        Object.keys(this.menu[category]).forEach(promptName => {
+        // Sort prompts alphabetically
+        const sortedPrompts = Object.keys(this.menu[category]).sort((a, b) => 
+            a.localeCompare(b, undefined, { sensitivity: 'base' })
+        );
+
+        sortedPrompts.forEach(promptName => {
             const button = document.createElement('button');
             button.className = 'prompt-btn';
             button.textContent = promptName;
