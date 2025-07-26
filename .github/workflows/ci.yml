@@ -219,7 +219,7 @@ jobs:
       !cancelled() && 
       needs.check-changes.outputs.should-build == 'true' &&
       github.ref == 'refs/heads/main' && 
-      github.event_name == 'push'
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     steps:
     - name: Deployment readiness
