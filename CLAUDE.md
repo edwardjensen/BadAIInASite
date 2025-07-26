@@ -77,7 +77,7 @@ badaiinasite/
 
 ## Important Implementation Notes
 
-1. **Menu System**: The `menu.json` file contains categories and prompts based on the original BAIIAB project. Users select from predefined options rather than typing custom prompts. Prompts are optimized for brevity.
+1. **Menu System**: The `menu.json` file contains categories and prompts based on the original BAIIAB project. Users select from predefined options rather than typing custom prompts. Menu updates can be deployed instantly without rebuilding the application.
 
 2. **Configuration System**: The `settings.conf` file contains build-specific settings like AI response limits, UI parameters, and server timeouts. This is separate from environment variables and allows easy customization without code changes.
 
@@ -85,17 +85,21 @@ badaiinasite/
 
 4. **Response Formatting**: The frontend supports basic markdown formatting (bold, italic, line breaks) and safely renders HTML. Responses are displayed with proper styling.
 
-5. **Deployment**: The GitHub Actions workflow uses tag-based deployment, triggering on version tags (e.g., v1.0.0). Uses Tailscale v3 for secure network access, builds the Docker image, and deploys to the specified Ubuntu VM using configurable secrets.
+5. **Deployment**: Dual deployment system with full releases (tag-based) and fast menu updates (push-based). Uses Tailscale v3 for secure network access and volume mounting for persistent menu configuration.
 
 6. **Environment Configuration**: Uses dotenv for local development with `.env` file support (excluded from git).
 
 7. **Live Reload**: Development mode includes automatic browser reload when frontend files change. Uses Socket.IO for WebSocket communication and chokidar for file watching.
 
+8. **Version Management**: Build-time version injection ensures accurate version display in production. Automatic fallback to git commands in development mode.
+
 ## Deployment Configuration
 
-### Tag-Based Deployment
-The CI/CD pipeline automatically builds Docker images, creates GitHub releases, and deploys to production when version tags are pushed:
+### Dual Deployment System
+The project features two distinct deployment workflows for maximum flexibility:
 
+#### 1. Release Deployment (Full App Updates)
+For version releases with code changes:
 ```bash
 # Create and push a version tag to trigger full release pipeline
 git tag v1.0.0
@@ -103,18 +107,35 @@ git push origin v1.0.0
 ```
 
 **Workflow Features:**
-- ✅ Automatic Docker image building and pushing to GitHub Container Registry
+- ✅ Automatic Docker image building with version info baked in
 - ✅ GitHub release creation with auto-generated changelog
 - ✅ Production deployment via Tailscale VPN
 - ✅ Container cleanup (keeps last 3 versions)
+- ✅ Menu.json reset to repository version
 - ✅ Manual deployment testing via workflow_dispatch
 - ✅ Prerelease detection for alpha/beta/rc/dev tags
+
+#### 2. Menu-Only Deployment (Fast Updates)
+For quick menu changes without full releases:
+```bash
+# Edit menu.json and push to main branch
+git add menu.json
+git commit -m "Update menu options"
+git push origin main
+```
+
+**Workflow Features:**
+- ⚡ Fast deployment (~30 seconds)
+- 🔄 Container restart only (no rebuild)
+- 📁 Volume-mounted menu.json for persistence
+- 🚀 Instant menu updates without CI/CD overhead
 
 ### GitHub Secrets Required
 The automated deployment requires these repository secrets:
 - `DEPLOY_SSH_KEY`: Private SSH key for Ubuntu server access
 - `DEPLOY_HOST`: Tailscale IP/hostname of deployment server (e.g., "100.106.49.116")
 - `DEPLOY_USER`: Username for SSH access (e.g., "edwardjensen")
+- `DEPLOY_MENU_PATH`: Server path for menu.json storage (e.g., "/media/develop/container-configs/badai")
 - `LM_STUDIO_ADDRESS`: Tailscale IP/hostname of LM Studio server (e.g., "100.106.49.116")
 - `OPENROUTER_API_KEY`: OpenRouter API key for cloud AI fallback
 - `TS_OAUTH_CLIENT_ID`: Tailscale OAuth Client ID for GitHub Actions network access (v3)

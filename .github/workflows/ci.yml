@@ -28,8 +28,16 @@ jobs:
     - name: Check for changes
       id: changes
       run: |
-        # Always run basic CI checks (linting, basic tests, etc.)
-        echo "should-test=true" >> $GITHUB_OUTPUT
+        # Check if only documentation files changed (skip all CI)
+        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+        if echo "$CHANGED_FILES" | grep -v -E '^(README\.md|CLAUDE\.md)$' > /dev/null; then
+          echo "should-test=true" >> $GITHUB_OUTPUT
+        else
+          echo "should-test=false" >> $GITHUB_OUTPUT
+          echo "should-build=false" >> $GITHUB_OUTPUT
+          echo "📚 Only documentation changed - skipping all CI steps"
+          exit 0
+        fi
         
         # Only build Docker image if app files changed
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then

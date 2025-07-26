@@ -98,13 +98,24 @@ The application supports two AI backends:
 
 ## 🚢 Deployment
 
-The project uses GitHub Actions for automated deployment with standard SSH:
+The project features **dual deployment workflows** for maximum flexibility:
 
-1. **Push to main branch** triggers the workflow
-2. **Docker image** is built and pushed to GitHub Container Registry
-3. **SSH connection** is established using standard bash scripting (no third-party actions)
-4. **Deployment** occurs automatically to the configured Ubuntu server
-5. **SSH keys** are automatically cleaned up after deployment
+### 🏷️ Release Deployment (Full App Updates)
+For version releases with code changes:
+1. **Create and push version tag**: `git tag v1.0.0 && git push origin v1.0.0`
+2. **Automated CI/CD pipeline** builds Docker image with version info
+3. **GitHub release** is created with changelog
+4. **Production deployment** occurs automatically
+5. **Menu reset** - menu.json is updated from repository version
+
+### ⚡ Menu-Only Deployment (Fast Updates)
+For quick menu changes without full releases:
+1. **Edit menu.json** and push to main branch
+2. **Fast deployment** (~30 seconds) via dedicated workflow
+3. **No container rebuild** - only menu file is updated
+4. **Instant restart** of existing container to apply changes
+
+Both workflows use **Tailscale VPN** for secure server access and **volume mounting** for persistent menu configuration.
 
 ### Manual Server Deployment
 
@@ -159,6 +170,8 @@ Edit `menu.json` to add new categories or prompts:
 }
 ```
 
+**Quick deployment**: Simply push `menu.json` changes to main branch for instant deployment without rebuilding the entire application!
+
 ### Styling
 
 The CSS uses a mobile-first approach with:
@@ -191,8 +204,10 @@ For automated deployment, configure these secrets in your GitHub repository:
 - `DEPLOY_SSH_KEY`: Private SSH key for server access (contents of `~/.ssh/id_rsa`)
 - `DEPLOY_HOST`: Tailscale IP address of your deployment server (e.g., "100.106.49.116")
 - `DEPLOY_USER`: Username for SSH access to deployment server (e.g., "deploy_user")
+- `DEPLOY_MENU_PATH`: Server path for menu.json storage (e.g., "/media/develop/container-configs/badai")
 - `LM_STUDIO_ADDRESS`: Tailscale IP address of your LM Studio server (e.g., "100.106.49.116")
 - `OPENROUTER_API_KEY`: Your OpenRouter API key for cloud AI backup
+- `NPM_DOCKER_NETWORK`: Docker network name for container networking (e.g., "npm_default")
 - `TS_OAUTH_CLIENT_ID`: Tailscale OAuth Client ID for GitHub Actions access
 - `TS_OAUTH_SECRET`: Tailscale OAuth Secret for GitHub Actions access
 
