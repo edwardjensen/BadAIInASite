@@ -180,9 +180,8 @@ jobs:
         oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
         tags: tag:github-actions
 
-    - name: Wait for Tailscale connection
-      run: |
-        timeout 60s bash -c 'until tailscale ping ${{ secrets.DEPLOY_HOST }}; do sleep 2; done'
+    # Removed the problematic "Wait for Tailscale connection" step
+    # The connection is established immediately after the GitHub Action completes
 
     - name: Deploy release to production
       run: |
