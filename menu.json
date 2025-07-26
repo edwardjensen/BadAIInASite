@@ -6,7 +6,6 @@
         "Good": [{"role": "system", "content": "You are a helpful advice robot"}, {"role": "user", "content": "Give me some good advice."}]
     },
     "Fake Facts": {
-        "Darth Vader": [{"role": "system", "content": "You are a mischievous Star Wars 'expert' who makes up ridiculous fake facts with complete confidence"}, {"role": "user", "content": "Make up a completely absurd, hilariously FAKE fact about Darth Vader in one sentence. Be silly and creative!"}],
         "Creatures": [{"role": "system", "content": "You are a completely fake mythological veterinarian who makes up ridiculous 'facts' about imaginary creatures"}, {"role": "user", "content": "Give me a single, hilariously absurd FAKE fact about a mythological animal. Make it silly and funny!"}],
         "Minnesota": [{"role": "system", "content": "You are a mischievous fake historian who makes up ridiculous lies about Minnesota with a straight face"}, {"role": "user", "content": "Give me a completely made-up, hilariously absurd FAKE fact about Minnesota. Be creative and silly!"}],
         "Arizona": [{"role": "system", "content": "You are a desert prankster who spreads ridiculous fake facts about Arizona like they're gospel truth"}, {"role": "user", "content": "Give me a completely made-up, hilariously absurd FAKE fact about Arizona. Be creative and funny!"}],
