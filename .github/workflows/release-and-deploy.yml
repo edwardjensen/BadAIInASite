@@ -5,6 +5,12 @@ name: Release and Deploy
 on:
   push:
     tags: [ 'v*' ]
+  workflow_dispatch:  # Add this for manual testing
+    inputs:
+      test_deployment:
+        description: 'Test deployment without release'
+        required: false
+        default: 'true'
 
 env:
   REGISTRY: ghcr.io
@@ -13,6 +19,8 @@ env:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    # Skip release creation for manual dispatch
+    if: github.event_name != 'workflow_dispatch'
     permissions:
       contents: write      # Required for creating releases
       packages: write      # Required for pushing to container registry
@@ -162,8 +170,8 @@ jobs:
   deploy-to-production:
     needs: build-and-release
     runs-on: ubuntu-latest
-    # Deploy all releases (both stable and prereleases) since this is a personal app
-    if: always() && needs.build-and-release.result == 'success'
+    # Run on successful release OR manual dispatch
+    if: always() && (needs.build-and-release.result == 'success' || github.event_name == 'workflow_dispatch')
 
     steps:
     - name: Setup SSH key
@@ -180,13 +188,24 @@ jobs:
         oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
         tags: tag:github-actions
 
-    # Removed the problematic "Wait for Tailscale connection" step
-    # The connection is established immediately after the GitHub Action completes
-
-    - name: Deploy release to production
+    - name: Deploy to production
       run: |
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+        # Use latest tag for manual testing, specific version for releases
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          IMAGE_TAG="latest"
+          echo "🧪 Testing deployment with latest image..."
+        else
+          IMAGE_TAG="${{ needs.build-and-release.outputs.version }}"
           echo "🚀 Deploying release ${{ needs.build-and-release.outputs.version }} to production..."
+        fi
+        
+        # Export variables for use in SSH session
+        export IMAGE_TAG
+        export DEPLOYMENT_TYPE="${{ github.event_name }}"
+        
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+          "IMAGE_TAG='${IMAGE_TAG}' DEPLOYMENT_TYPE='${DEPLOYMENT_TYPE}' bash -s" << 'EOF'
+          echo "🚀 Starting deployment with image tag: ${IMAGE_TAG}"
           
           # Login to GitHub Container Registry
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -195,27 +214,28 @@ jobs:
           docker stop badaiinasite || true
           docker rm badaiinasite || true
           
-          # Pull the specific release version
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-release.outputs.version }}
-          
-          # Run new container with the specific version
+          # Pull and run the image
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
           docker run -d \
             --name badaiinasite \
             --network ${{ secrets.NPM_DOCKER_NETWORK }} \
             --restart unless-stopped \
             -e OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
             -e LM_STUDIO_URL="http://${{ secrets.LM_STUDIO_ADDRESS }}:1234/v1/chat/completions" \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-release.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
           
-          # Clean up old images (keep last 3 versions)
-          docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --format "table {{.Tag}}\t{{.ID}}" | \
-            grep -E "^v[0-9]" | tail -n +4 | awk '{print $2}' | xargs -r docker rmi || true
+          # Clean up old images (keep last 3 versions) - only for release deployments
+          if [ "${DEPLOYMENT_TYPE}" != "workflow_dispatch" ]; then
+            echo "🧹 Cleaning up old container images..."
+            docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --format "table {{.Tag}}\t{{.ID}}" | \
+              grep -E "^v[0-9]" | tail -n +4 | awk '{print $2}' | xargs -r docker rmi || true
+          fi
           
           # Show running containers
           docker ps
           
-          echo "✅ Successfully deployed release ${{ needs.build-and-release.outputs.version }} at $(date)"
-          echo "🏷️  Production is now running: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-release.outputs.version }}"
+          echo "✅ Successfully deployed ${IMAGE_TAG} at $(date)"
+          echo "🏷️  Production is now running: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
         EOF
 
     - name: Cleanup SSH key
@@ -225,5 +245,10 @@ jobs:
 
     - name: Deployment success notification
       run: |
-        echo "🎉 Successfully deployed release ${{ needs.build-and-release.outputs.version }} to production!"
-        echo "🔗 Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.build-and-release.outputs.version }}"
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "🧪 Successfully tested deployment with latest image!"
+          echo "✅ Tailscale connectivity confirmed working"
+        else
+          echo "🎉 Successfully deployed release ${{ needs.build-and-release.outputs.version }} to production!"
+          echo "🔗 Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.build-and-release.outputs.version }}"
+        fi
