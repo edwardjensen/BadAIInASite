@@ -13,7 +13,7 @@ A web adaptation of the ["Bad AI In A Box" (BAIIAB) project](https://github.com/
 - **Menu-driven interaction**: Select from curated prompts instead of free-form queries
 - **Mobile-first design**: Optimized for iPhone displays
 - **Dual AI backend**: Supports both local LM Studio and OpenRouter API
-- **Concise responses**: Limited to ~80 tokens for quick, punchy bad advice
+- **Concise responses**: Limited to ~150 tokens for quick, punchy bad advice
 - **Smart formatting**: Basic markdown support with HTML rendering
 - **Containerized deployment**: Docker-based with automated GitHub Actions deployment
 - **Offline capable**: No external dependencies required for local operation
@@ -146,7 +146,7 @@ Edit `settings.conf` to customize application behavior:
 ```ini
 [ai_response]
 # Maximum number of tokens for AI responses
-max_tokens = 80
+max_tokens = 150
 # Temperature setting (0.0 to 1.0, higher = more creative)
 temperature = 0.9
 
@@ -159,7 +159,29 @@ loading_timeout = 30000
 
 ### Adding New Prompts
 
-Edit `menu.json` to add new categories or prompts:
+The application supports two menu files for maximum flexibility:
+
+#### Production Menu (`menu.json`)
+
+- **Tracked in version control** - changes are deployed to production
+- **Used by default** in all environments
+- **Shared with team** - modifications affect all developers
+
+#### Local Development Menu (`menu-local.json`)
+
+- **Not tracked in version control** - local customizations only
+- **Automatically prioritized** when running `npm run dev`
+- **Graceful fallback** to `menu.json` if local file doesn't exist
+- **Hot reload support** - changes detected and applied instantly
+
+To customize prompts for local development:
+
+1. **Copy the base menu**: `cp menu.json menu-local.json`
+2. **Edit menu-local.json** with your custom prompts/categories
+3. **Test locally** - server automatically uses the local version
+4. **Safe to experiment** - your changes won't affect version control
+
+**Menu Structure**: Edit either file to add new categories or prompts:
 
 ```json
 {
@@ -172,7 +194,7 @@ Edit `menu.json` to add new categories or prompts:
 }
 ```
 
-**Quick deployment**: Simply push `menu.json` changes to main branch for instant deployment without rebuilding the entire application!
+**Quick deployment**: Push `menu.json` changes to main branch for instant production deployment without rebuilding the entire application!
 
 ### Styling
 

@@ -67,7 +67,7 @@ class BadAI {
             console.error('Failed to load configuration:', error);
             this.config = {
                 ui: { response_min_height: 120, loading_timeout: 30000 },
-                ai_response: { max_tokens: 80, temperature: 0.9 },
+                ai_response: { max_tokens: 150, temperature: 0.9 },
                 disclaimers: ['⚠️ This is a fun project! AI responses are intentionally bad and should not be taken seriously.']
             };
             this.setRandomDisclaimer();

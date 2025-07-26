@@ -42,9 +42,9 @@ class BadAIServer {
             // Set default configuration
             this.config = {
                 ai_response: {
-                    max_tokens: 80,
+                    max_tokens: 150,
                     temperature: 0.9,
-                    concise_prompt: 'Be hilariously unhelpful and mischievous! Keep responses concise (under 100 words). Use NO formatting - no markdown, no asterisks, no underscores, just plain text. Be playful, absurd, and funny. Embrace the silly chaos!'
+                    concise_prompt: 'Be hilariously unhelpful and mischievous! Keep responses concise but complete (under 150 words). Use NO formatting - no markdown, no asterisks, no underscores, just plain text. Be playful, absurd, and funny. Finish your thoughts completely!'
                 },
                 ui: {
                     response_min_height: 120,
@@ -169,14 +169,53 @@ class BadAIServer {
 
     async loadMenu() {
         try {
-            const menuPath = path.join(__dirname, '../menu.json');
+            // Try to load local menu first (menu-local.json)
+            const localMenuPath = path.join(__dirname, '../menu-local.json');
+            const fallbackMenuPath = path.join(__dirname, '../menu.json');
+            
+            let menuPath = fallbackMenuPath;
+            let menuSource = 'menu.json';
+            
+            try {
+                // Check if local menu exists
+                await fs.access(localMenuPath);
+                menuPath = localMenuPath;
+                menuSource = 'menu-local.json';
+            } catch (error) {
+                // Local menu doesn't exist, use fallback
+                console.log('📋 menu-local.json not found, using menu.json');
+            }
+            
             const menuData = await fs.readFile(menuPath, 'utf8');
             this.menu = JSON.parse(menuData);
-            console.log('Menu loaded successfully');
+            console.log(`Menu loaded successfully from ${menuSource}`);
         } catch (error) {
             console.error('Failed to load menu:', error);
             this.menu = {};
         }
+    }
+
+    // Helper function to enhance system prompts instead of adding separate system messages
+    enhanceSystemPrompt(messages) {
+        const enhancedMessages = [...messages];
+        
+        // Find the system message and enhance it
+        const systemMessageIndex = enhancedMessages.findIndex(msg => msg.role === 'system');
+        if (systemMessageIndex !== -1) {
+            // Merge the concise prompt into the existing system message
+            enhancedMessages[systemMessageIndex] = {
+                ...enhancedMessages[systemMessageIndex],
+                content: `${enhancedMessages[systemMessageIndex].content}. ${this.config.ai_response.concise_prompt}`
+            };
+        } else {
+            // If no system message exists, add one
+            enhancedMessages.unshift({
+                role: 'system',
+                content: this.config.ai_response.concise_prompt
+            });
+        }
+        
+        return enhancedMessages;
     }
 
     async checkLocalAI() {
@@ -194,6 +233,9 @@ class BadAIServer {
 
     async queryLocalAI(messages) {
         try {
+            // Enhance the system prompt instead of adding a separate system message
+            const enhancedMessages = this.enhanceSystemPrompt(messages);
+            
             const response = await fetch(this.lmStudioUrl, {
                 method: 'POST',
                 headers: {
@@ -201,10 +243,7 @@ class BadAIServer {
                 },
                 body: JSON.stringify({
                     model: 'local-model',
-                    messages: [...messages, {
-                        role: 'system', 
-                        content: this.config.ai_response.concise_prompt
-                    }],
+                    messages: enhancedMessages,
                     max_tokens: parseInt(this.config.ai_response.max_tokens),
                     temperature: parseFloat(this.config.ai_response.temperature),
                     stream: false
@@ -230,6 +269,9 @@ class BadAIServer {
         }
 
         try {
+            // Enhance the system prompt instead of adding a separate system message
+            const enhancedMessages = this.enhanceSystemPrompt(messages);
+            
             const response = await fetch(this.openRouterUrl, {
                 method: 'POST',
                 headers: {
@@ -240,10 +282,7 @@ class BadAIServer {
                 },
                 body: JSON.stringify({
                     model: 'google/gemma-2-9b-it:free',
-                    messages: [...messages, {
-                        role: 'system', 
-                        content: this.config.ai_response.concise_prompt
-                    }],
+                    messages: enhancedMessages,
                     max_tokens: parseInt(this.config.ai_response.max_tokens),
                     temperature: parseFloat(this.config.ai_response.temperature),
                     stream: false
@@ -339,13 +378,36 @@ class BadAIServer {
         
         // Watch public directory for changes
         const publicPath = path.join(__dirname, '../public');
-        const watcher = chokidar.watch(publicPath, {
+        const publicWatcher = chokidar.watch(publicPath, {
             ignored: /node_modules/,
             persistent: true
         });
 
-        watcher.on('change', (filePath) => {
+        publicWatcher.on('change', (filePath) => {
             console.log(`📁 File changed: ${path.relative(process.cwd(), filePath)}`);
+            this.io.emit('reload');
+        });
+
+        // Watch menu files for changes
+        const menuFiles = [
+            path.join(__dirname, '../menu.json'),
+            path.join(__dirname, '../menu-local.json')
+        ];
+        
+        const menuWatcher = chokidar.watch(menuFiles, {
+            ignored: /node_modules/,
+            persistent: true,
+            ignoreInitial: true // Don't trigger on startup
+        });
+
+        menuWatcher.on('change', async (filePath) => {
+            const fileName = path.basename(filePath);
+            console.log(`📋 Menu file changed: ${fileName}`);
+            
+            // Reload menu data
+            await this.loadMenu();
+            
+            // Notify clients to reload
             this.io.emit('reload');
         });
 

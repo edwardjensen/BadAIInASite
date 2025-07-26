@@ -168,11 +168,14 @@ h2 {
     font-size: 1.1rem;
     line-height: 1.6;
     min-height: var(--response-min-height, 120px);
+    max-height: none; /* Ensure no height constraints */
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* Align to top instead of center for long content */
     justify-content: center;
     text-align: center;
     white-space: pre-line;
+    word-wrap: break-word; /* Ensure long words don't overflow */
+    overflow-wrap: break-word; /* Better word wrapping */
 }
 
 .response strong {
