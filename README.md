@@ -84,12 +84,17 @@ badaiinasite/
 The application supports two AI backends:
 
 ### Local AI (LM Studio)
+
 - **Default**: Attempts to connect to LM Studio on `localhost:1234`
 - **Supported models**: `google/gemma-3-4b`, `phi-4`, `deepseek-r1-distill-llama-8b`, `deepseek-r1-distill-qwen-7b`
+- **Model configuration**: Configurable via `DEFAULT_LMSTUDIO_MODEL` environment variable
 - **Fallback**: Automatically switches to OpenRouter if local AI is unavailable
 
 ### Cloud AI (OpenRouter)
-- **Models**: `google/gemma-2-9b-it:free`, `deepseek/deepseek-r1-0528:free`
+
+- **Default model**: `google/gemini-2.0-flash-exp:free` (configurable)
+- **Alternative models**: `google/gemma-2-9b-it:free`, `deepseek/deepseek-r1-0528:free`
+- **Model configuration**: Configurable via `DEFAULT_OPENROUTER_MODEL` environment variable  
 - **Configuration**: Requires `OPENROUTER_API_KEY` environment variable
 - **Usage**: Automatically used as fallback or manually selected
 
@@ -222,6 +227,8 @@ Configure these in your `.env` file for local development:
 - `LM_STUDIO_ADDRESS`: IP address or hostname of LM Studio server (default: localhost)
 - `LM_STUDIO_URL`: Full LM Studio endpoint URL (overrides LM_STUDIO_ADDRESS if set)
 - `OPENROUTER_API_KEY`: OpenRouter API key for cloud AI fallback
+- `DEFAULT_LMSTUDIO_MODEL`: Default model to use with LM Studio (default: local-model)
+- `DEFAULT_OPENROUTER_MODEL`: Default model to use with OpenRouter (default: google/gemini-2.0-flash-exp:free)
 
 ### GitHub Secrets Setup
 For automated deployment, configure these secrets in your GitHub repository:
@@ -238,6 +245,13 @@ For automated deployment, configure these secrets in your GitHub repository:
 - `TS_OAUTH_CLIENT_ID`: Tailscale OAuth Client ID for GitHub Actions access
 - `TS_OAUTH_SECRET`: Tailscale OAuth Secret for GitHub Actions access
 
+**GitHub Actions Variables**
+
+Configure these variables in Settings → Secrets and variables → Actions → Variables tab:
+
+- `DEFAULT_LMSTUDIO_MODEL`: Default model to use with LM Studio (e.g., "deepseek-r1-distill-llama-8b"). If not set, will fall back to OpenRouter.
+- `DEFAULT_OPENROUTER_MODEL`: Default model for OpenRouter (e.g., "google/gemini-2.0-flash-exp:free"). If not set, defaults to `google/gemini-2.0-flash-exp:free`.
+
 **To get Tailscale OAuth credentials:**
 1. Go to [Tailscale Admin Console](https://login.tailscale.com/admin/settings/oauth)
 2. Generate OAuth Client with tags: `tag:github-actions`  
@@ -246,13 +260,64 @@ For automated deployment, configure these secrets in your GitHub repository:
 ### Testing
 
 ```bash
-# Test the application locally
+# Test the application locally (development mode)
 npm run dev
-
-# Test Docker build
-docker build -t badaiinasite-test .
-docker run -p 3000:3000 badaiinasite-test
 ```
+
+#### Local Container Testing
+
+Use the provided scripts to test the containerized application with custom model configurations before pushing to GitHub:
+
+**PowerShell (Windows/Linux/macOS with PowerShell Core):**
+```powershell
+# Basic test with defaults
+./test-local.ps1
+
+# Test with specific LM Studio model
+./test-local.ps1 -LMStudioModel "deepseek-r1-distill-llama-8b"
+
+# Test with OpenRouter fallback
+./test-local.ps1 -OpenRouterApiKey "sk-or-..." -OpenRouterModel "deepseek/deepseek-r1-0528:free"
+
+# Test with remote LM Studio server
+./test-local.ps1 -LMStudioAddress "192.168.1.100"
+
+# View logs and stop container
+./test-local.ps1 -Logs
+./test-local.ps1 -Stop
+```
+
+**Shell Script (Unix/Linux/macOS):**
+```bash
+# Basic test with defaults
+./test-local.sh
+
+# Test with specific models using environment variables
+LM_STUDIO_MODEL="phi-4" OPENROUTER_API_KEY="sk-..." ./test-local.sh
+
+# Test with command line options
+./test-local.sh --lm-studio-model "deepseek-r1-distill-llama-8b" --port 8080
+
+# View logs and stop container
+./test-local.sh logs
+./test-local.sh stop
+```
+
+**Windows Batch (Simple version):**
+```cmd
+REM Basic test (edit variables in script for customization)
+test-local.bat
+
+REM View logs and stop
+test-local.bat logs
+test-local.bat stop
+```
+
+All test scripts will:
+- Build the Docker image with your specified model configurations
+- Start a test container accessible at `http://localhost:3000` (or custom port)
+- Display initial logs and provide commands for management
+- Allow easy testing of both local LM Studio and OpenRouter configurations
 
 ## 🤝 Contributing
 

@@ -161,6 +161,9 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          DEFAULT_LMSTUDIO_MODEL=${{ vars.DEFAULT_LMSTUDIO_MODEL }}
+          DEFAULT_OPENROUTER_MODEL=${{ vars.DEFAULT_OPENROUTER_MODEL }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 

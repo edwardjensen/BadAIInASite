@@ -127,6 +127,8 @@ jobs:
           BUILD_VERSION=${{ steps.version.outputs.tag }}
           BUILD_DATE=${{ steps.version.outputs.build-date }}
           BUILD_COMMIT=${{ github.sha }}
+          DEFAULT_LMSTUDIO_MODEL=${{ vars.DEFAULT_LMSTUDIO_MODEL }}
+          DEFAULT_OPENROUTER_MODEL=${{ vars.DEFAULT_OPENROUTER_MODEL }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 

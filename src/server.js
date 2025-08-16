@@ -70,6 +70,10 @@ class BadAIServer {
         this.lmStudioUrl = process.env.LM_STUDIO_URL || `http://${lmStudioAddress}:1234/v1/chat/completions`;
         this.openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
         this.openRouterKey = process.env.OPENROUTER_API_KEY;
+        
+        // Model configurations
+        this.defaultLMStudioModel = process.env.DEFAULT_LMSTUDIO_MODEL || 'local-model';
+        this.defaultOpenRouterModel = process.env.DEFAULT_OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
     }
 
     setupMiddleware() {
@@ -242,7 +246,7 @@ class BadAIServer {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    model: 'local-model',
+                    model: this.defaultLMStudioModel,
                     messages: enhancedMessages,
                     max_tokens: parseInt(this.config.ai_response.max_tokens),
                     temperature: parseFloat(this.config.ai_response.temperature),
@@ -281,7 +285,7 @@ class BadAIServer {
                     'X-Title': 'Bad AI In A Site'
                 },
                 body: JSON.stringify({
-                    model: 'google/gemma-2-9b-it:free',
+                    model: this.defaultOpenRouterModel,
                     messages: enhancedMessages,
                     max_tokens: parseInt(this.config.ai_response.max_tokens),
                     temperature: parseFloat(this.config.ai_response.temperature),
@@ -431,6 +435,8 @@ class BadAIServer {
             console.log(`🤖 Bad AI In A Site server running on port ${this.port}`);
             console.log(`📱 Open http://localhost:${this.port} to access the site`);
             console.log(`⚙️  Max tokens: ${this.config.ai_response.max_tokens}, Temperature: ${this.config.ai_response.temperature}`);
+            console.log(`🧠 Default LM Studio model: ${this.defaultLMStudioModel}`);
+            console.log(`🌐 Default OpenRouter model: ${this.defaultOpenRouterModel}`);
             
             // Check AI status on startup
             this.checkLocalAI().then(available => {
