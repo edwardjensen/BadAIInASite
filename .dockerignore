@@ -2,7 +2,6 @@ node_modules
 npm-debug.log
 .git
 .gitignore
-README.md
 .env
 .env.local
 .env.production
@@ -11,4 +10,4 @@ test/
 test-*
 .github/
 prompt/
-CLAUDE.md
+*.md
