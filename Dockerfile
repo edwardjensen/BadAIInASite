@@ -1,5 +1,5 @@
-# Use Node.js LTS Alpine image for smaller size and security
-FROM node:20-alpine
+# Use latest Alpine Linux as base image
+FROM alpine:latest
 
 # Accept build arguments for version info
 ARG BUILD_VERSION=unknown
@@ -7,14 +7,22 @@ ARG BUILD_DATE=unknown
 ARG BUILD_COMMIT=unknown
 
 # Accept build arguments for AI model configurations
-ARG DEFAULT_LMSTUDIO_MODEL=local-model
 ARG DEFAULT_OPENROUTER_MODEL=google/gemini-2.0-flash-exp:free
 
 # Set working directory
 WORKDIR /app
 
-# Update packages and install security updates
-RUN apk update && apk upgrade
+# Install Node.js 22.x, npm, and other required packages
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache \
+        nodejs-current \
+        npm \
+        ca-certificates \
+        tzdata && \
+    # Verify Node.js version (should be 22.x)
+    node --version && \
+    npm --version
 
 # Copy package files
 COPY package*.json ./
@@ -43,7 +51,6 @@ ENV NODE_ENV=production
 ENV BUILD_VERSION=${BUILD_VERSION}
 ENV BUILD_DATE=${BUILD_DATE}
 ENV BUILD_COMMIT=${BUILD_COMMIT}
-ENV DEFAULT_LMSTUDIO_MODEL=${DEFAULT_LMSTUDIO_MODEL}
 ENV DEFAULT_OPENROUTER_MODEL=${DEFAULT_OPENROUTER_MODEL}
 
 # Expose port

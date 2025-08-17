@@ -1,6 +1,6 @@
 {
   "name": "badaiinasite",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Bad AI In A Site - A web adaptation of the Bad AI In A Box project",
   "main": "src/server.js",
   "scripts": {

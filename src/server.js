@@ -174,21 +174,40 @@ class BadAIServer {
 
     async loadMenu() {
         try {
-            // Try to load local menu first (menu-local.json)
+            // Check if we're running with npm start (development mode)
+            const isDevelopment = process.argv.some(arg => arg.includes('npm') || arg.includes('start')) || 
+                                process.env.NODE_ENV === 'development';
+            
+            // Define menu file paths in priority order
+            const externalMenuPath = path.join(__dirname, '../../baiias-menu/menu.json');
             const localMenuPath = path.join(__dirname, '../menu-local.json');
             const fallbackMenuPath = path.join(__dirname, '../menu.json');
             
             let menuPath = fallbackMenuPath;
             let menuSource = 'menu.json';
             
-            try {
-                // Check if local menu exists
-                await fs.access(localMenuPath);
-                menuPath = localMenuPath;
-                menuSource = 'menu-local.json';
-            } catch (error) {
-                // Local menu doesn't exist, use fallback
-                console.log('📋 menu-local.json not found, using menu.json');
+            if (isDevelopment) {
+                try {
+                    // Check if external menu exists (for development)
+                    await fs.access(externalMenuPath);
+                    menuPath = externalMenuPath;
+                    menuSource = '../baiias-menu/menu.json';
+                    console.log('📋 Using external menu for development');
+                } catch (error) {
+                    console.log('📋 External menu not found, checking for local menu');
+                }
+            }
+            
+            if (menuPath === fallbackMenuPath) {
+                try {
+                    // Check if local menu exists
+                    await fs.access(localMenuPath);
+                    menuPath = localMenuPath;
+                    menuSource = 'menu-local.json';
+                } catch (error) {
+                    // Local menu doesn't exist, use fallback
+                    console.log('📋 menu-local.json not found, using menu.json');
+                }
             }
             
             const menuData = await fs.readFile(menuPath, 'utf8');
@@ -418,10 +437,19 @@ class BadAIServer {
         });
 
         // Watch menu files for changes
+        const isDevelopment = process.argv.some(arg => arg.includes('npm') || arg.includes('start')) || 
+                            process.env.NODE_ENV === 'development';
+        
         const menuFiles = [
             path.join(__dirname, '../menu.json'),
             path.join(__dirname, '../menu-local.json')
         ];
+        
+        // Add external menu file to watch list in development mode
+        if (isDevelopment) {
+            const externalMenuPath = path.join(__dirname, '../../baiias-menu/menu.json');
+            menuFiles.push(externalMenuPath);
+        }
         
         const menuWatcher = chokidar.watch(menuFiles, {
             ignored: /node_modules/,
