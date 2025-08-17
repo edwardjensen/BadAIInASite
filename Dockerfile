@@ -26,6 +26,7 @@ RUN npm ci --omit=dev
 COPY src/ ./src/
 COPY public/ ./public/
 COPY menu.json ./
+COPY settings.conf ./
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
