@@ -71,6 +71,13 @@ class BadAIServer {
         this.openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
         this.openRouterKey = process.env.OPENROUTER_API_KEY;
         
+        // Debug logging for environment variables
+        console.log(`🔧 Environment Debug:`);
+        console.log(`   LM_STUDIO_ADDRESS: ${process.env.LM_STUDIO_ADDRESS || 'not set'}`);
+        console.log(`   LM_STUDIO_URL: ${process.env.LM_STUDIO_URL || 'not set'}`);
+        console.log(`   OPENROUTER_API_KEY: ${process.env.OPENROUTER_API_KEY ? '***configured***' : 'not set'}`);
+        console.log(`   Constructed LM Studio URL: ${this.lmStudioUrl}`);
+        
         // Model configurations
         this.defaultLMStudioModel = process.env.DEFAULT_LMSTUDIO_MODEL || null; // Will be auto-detected
         this.currentLMStudioModel = null; // Will store the detected model
