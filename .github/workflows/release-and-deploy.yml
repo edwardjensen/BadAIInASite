@@ -21,8 +21,7 @@ env:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
-    # Skip release creation for manual dispatch
-    if: github.event_name != 'workflow_dispatch'
+    # Skip release creation for manual dispatch, but still build the image
     permissions:
       contents: write      # Required for creating releases
       packages: write      # Required for pushing to container registry
@@ -51,19 +50,30 @@ jobs:
     - name: Extract version from tag
       id: version
       run: |
-        VERSION=${GITHUB_REF#refs/tags/v}
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "tag=$GITHUB_REF_NAME" >> $GITHUB_OUTPUT
-        echo "build-date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
-        
-        # Check if this is a prerelease
-        if [[ "$VERSION" =~ (alpha|beta|rc|dev) ]]; then
-          echo "is-prerelease=true" >> $GITHUB_OUTPUT
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          # For manual builds, use 'latest' as version
+          VERSION="latest"
+          TAG="latest"
+          IS_PRERELEASE="true"
         else
-          echo "is-prerelease=false" >> $GITHUB_OUTPUT
+          # For tag-based releases, extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+          TAG=$GITHUB_REF_NAME
+          # Check if this is a prerelease
+          if [[ "$VERSION" =~ (alpha|beta|rc|dev) ]]; then
+            IS_PRERELEASE="true"
+          else
+            IS_PRERELEASE="false"
+          fi
         fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "build-date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+        echo "is-prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
 
     - name: Get previous tag for changelog
+      if: github.event_name != 'workflow_dispatch'
       id: previous-tag
       run: |
         PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v "^${{ github.ref_name }}$" | head -n 1)
@@ -74,6 +84,7 @@ jobs:
         echo "Previous tag: $PREVIOUS_TAG"
 
     - name: Generate changelog
+      if: github.event_name != 'workflow_dispatch'
       id: changelog
       run: |
         # Generate changelog between tags
@@ -133,6 +144,7 @@ jobs:
         cache-to: type=gha,mode=max
 
     - name: Create GitHub Release
+      if: github.event_name != 'workflow_dispatch'
       run: |
         # Determine if this is a prerelease
         if [ "${{ steps.version.outputs.is-prerelease }}" = "true" ]; then
@@ -150,6 +162,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Update release with Docker image info
+      if: github.event_name != 'workflow_dispatch'
       run: |
         # Add container size and other metadata
         MANIFEST=$(docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }})
@@ -179,8 +192,8 @@ jobs:
   deploy-to-production:
     needs: build-and-release
     runs-on: ubuntu-latest
-    # Run on successful release OR manual dispatch
-    if: always() && (needs.build-and-release.result == 'success' || github.event_name == 'workflow_dispatch')
+    # Run after successful build (for both releases and manual dispatch)
+    if: always() && needs.build-and-release.result == 'success'
 
     steps:
     - name: Setup SSH key
