@@ -7,7 +7,7 @@ ARG BUILD_DATE=unknown
 ARG BUILD_COMMIT=unknown
 
 # Accept build arguments for AI model configurations
-ARG DEFAULT_OPENROUTER_MODEL=google/gemini-2.0-flash-exp:free
+ARG DEFAULT_OPENROUTER_MODEL=openai/gpt-oss-20b:free
 
 # Set working directory
 WORKDIR /app
