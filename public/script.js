@@ -224,6 +224,9 @@ class BadAI {
         this.showView('prompts');
         
         document.getElementById('category-title').textContent = category;
+        
+        // Cycle to a new random disclaimer when changing categories
+        this.setRandomDisclaimer();
     }
 
     renderPrompts(category) {
@@ -249,6 +252,10 @@ class BadAI {
     selectPrompt(promptName) {
         this.currentPrompt = promptName;
         this.showView('response');
+        
+        // Cycle to a new random disclaimer when selecting a prompt
+        this.setRandomDisclaimer();
+        
         this.generateResponse();
     }
 
@@ -286,6 +293,9 @@ class BadAI {
                 const formattedResponse = this.sanitizeHtml(this.markdownToHtml(data.response));
                 responseElement.innerHTML = formattedResponse;
                 responseElement.classList.remove('error');
+                
+                // Cycle to a new random disclaimer after each response
+                this.setRandomDisclaimer();
             }
             
             tryAgainBtn.classList.remove('hidden');

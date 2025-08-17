@@ -72,7 +72,8 @@ class BadAIServer {
         this.openRouterKey = process.env.OPENROUTER_API_KEY;
         
         // Model configurations
-        this.defaultLMStudioModel = process.env.DEFAULT_LMSTUDIO_MODEL || 'local-model';
+        this.defaultLMStudioModel = process.env.DEFAULT_LMSTUDIO_MODEL || null; // Will be auto-detected
+        this.currentLMStudioModel = null; // Will store the detected model
         this.defaultOpenRouterModel = process.env.DEFAULT_OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
     }
 
@@ -224,11 +225,27 @@ class BadAIServer {
 
     async checkLocalAI() {
         try {
-            const response = await fetch(this.lmStudioUrl.replace('/chat/completions', '/models'), {
+            const modelsUrl = this.lmStudioUrl.replace('/chat/completions', '/models');
+            const response = await fetch(modelsUrl, {
                 method: 'GET',
                 timeout: 5000
             });
-            return response.ok;
+            
+            if (!response.ok) {
+                return false;
+            }
+            
+            const data = await response.json();
+            
+            // Extract the first available model
+            if (data.data && data.data.length > 0) {
+                this.currentLMStudioModel = data.data[0].id;
+                console.log(`🎯 Detected LM Studio model: ${this.currentLMStudioModel}`);
+                return true;
+            } else {
+                console.log('No models loaded in LM Studio');
+                return false;
+            }
         } catch (error) {
             console.log('Local AI not available:', error.message);
             return false;
@@ -237,6 +254,14 @@ class BadAIServer {
 
     async queryLocalAI(messages) {
         try {
+            // If we don't have a detected model, try to detect it now
+            if (!this.currentLMStudioModel) {
+                const isAvailable = await this.checkLocalAI();
+                if (!isAvailable) {
+                    throw new Error('No model detected in LM Studio');
+                }
+            }
+            
             // Enhance the system prompt instead of adding a separate system message
             const enhancedMessages = this.enhanceSystemPrompt(messages);
             
@@ -246,7 +271,7 @@ class BadAIServer {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    model: this.defaultLMStudioModel,
+                    model: this.currentLMStudioModel || this.defaultLMStudioModel,
                     messages: enhancedMessages,
                     max_tokens: parseInt(this.config.ai_response.max_tokens),
                     temperature: parseFloat(this.config.ai_response.temperature),
@@ -435,11 +460,15 @@ class BadAIServer {
             console.log(`🤖 Bad AI In A Site server running on port ${this.port}`);
             console.log(`📱 Open http://localhost:${this.port} to access the site`);
             console.log(`⚙️  Max tokens: ${this.config.ai_response.max_tokens}, Temperature: ${this.config.ai_response.temperature}`);
-            console.log(`🧠 Default LM Studio model: ${this.defaultLMStudioModel}`);
             console.log(`🌐 Default OpenRouter model: ${this.defaultOpenRouterModel}`);
             
             // Check AI status on startup
             this.checkLocalAI().then(available => {
+                if (available && this.currentLMStudioModel) {
+                    console.log(`🧠 LM Studio model detected: ${this.currentLMStudioModel}`);
+                } else {
+                    console.log(`🧠 LM Studio: Not available or no model loaded`);
+                }
                 console.log(`🧠 Local AI status: ${available ? 'Available' : 'Not available'}`);
                 console.log(`🔑 OpenRouter API: ${this.openRouterKey ? 'Configured' : 'Not configured'}`);
             });

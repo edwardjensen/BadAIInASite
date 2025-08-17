@@ -227,7 +227,7 @@ Configure these in your `.env` file for local development:
 - `LM_STUDIO_ADDRESS`: IP address or hostname of LM Studio server (default: localhost)
 - `LM_STUDIO_URL`: Full LM Studio endpoint URL (overrides LM_STUDIO_ADDRESS if set)
 - `OPENROUTER_API_KEY`: OpenRouter API key for cloud AI fallback
-- `DEFAULT_LMSTUDIO_MODEL`: Default model to use with LM Studio (default: local-model)
+- `DEFAULT_LMSTUDIO_MODEL`: Default model to use with LM Studio (default: first loaded model)
 - `DEFAULT_OPENROUTER_MODEL`: Default model to use with OpenRouter (default: google/gemini-2.0-flash-exp:free)
 
 ### GitHub Secrets Setup
@@ -271,46 +271,46 @@ Use the provided scripts to test the containerized application with custom model
 **PowerShell (Windows/Linux/macOS with PowerShell Core):**
 ```powershell
 # Basic test with defaults
-./test-local.ps1
+./testing/test-local.ps1
 
 # Test with specific LM Studio model
-./test-local.ps1 -LMStudioModel "deepseek-r1-distill-llama-8b"
+./testing/test-local.ps1 -LMStudioModel "deepseek-r1-distill-llama-8b"
 
 # Test with OpenRouter fallback
-./test-local.ps1 -OpenRouterApiKey "sk-or-..." -OpenRouterModel "deepseek/deepseek-r1-0528:free"
+./testing/test-local.ps1 -OpenRouterApiKey "sk-or-..." -OpenRouterModel "deepseek/deepseek-r1-0528:free"
 
 # Test with remote LM Studio server
-./test-local.ps1 -LMStudioAddress "192.168.1.100"
+./testing/test-local.ps1 -LMStudioAddress "192.168.1.100"
 
 # View logs and stop container
-./test-local.ps1 -Logs
-./test-local.ps1 -Stop
+./testing/test-local.ps1 -Logs
+./testing/test-local.ps1 -Stop
 ```
 
 **Shell Script (Unix/Linux/macOS):**
 ```bash
 # Basic test with defaults
-./test-local.sh
+./testing/test-local.sh
 
 # Test with specific models using environment variables
-LM_STUDIO_MODEL="phi-4" OPENROUTER_API_KEY="sk-..." ./test-local.sh
+LM_STUDIO_MODEL="phi-4" OPENROUTER_API_KEY="sk-..." ./testing/test-local.sh
 
 # Test with command line options
-./test-local.sh --lm-studio-model "deepseek-r1-distill-llama-8b" --port 8080
+./testing/test-local.sh --lm-studio-model "deepseek-r1-distill-llama-8b" --port 8080
 
 # View logs and stop container
-./test-local.sh logs
-./test-local.sh stop
+./testing/test-local.sh logs
+./testing/test-local.sh stop
 ```
 
 **Windows Batch (Simple version):**
 ```cmd
 REM Basic test (edit variables in script for customization)
-test-local.bat
+testing\test-local.bat
 
 REM View logs and stop
-test-local.bat logs
-test-local.bat stop
+testing\test-local.bat logs
+testing\test-local.bat stop
 ```
 
 All test scripts will:

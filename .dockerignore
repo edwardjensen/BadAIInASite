@@ -8,6 +8,7 @@ README.md
 .env.production
 .DS_Store
 test/
+test-*
 .github/
 prompt/
 CLAUDE.md
