@@ -34,12 +34,24 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "mkdir -p ${{ secrets.DEPLOY_MENU_PATH }}"
           
-          # Copy menu.json to server
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa menu.json ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_MENU_PATH }}/
-
-          # Restart container to pick up changes
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "docker restart badaiinasite || echo 'Container restart failed - may need initial deployment'"
+          # Check if a custom menu.json exists on the server
+          CUSTOM_MENU_EXISTS=$(ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "if [ -f ${{ secrets.DEPLOY_MENU_PATH }}/menu.json ]; then echo 'true'; else echo 'false'; fi")
+          
+          if [ "$CUSTOM_MENU_EXISTS" = "true" ]; then
+            echo "📋 Custom menu.json detected on server"
+            echo "⚠️  Skipping menu update to preserve custom configuration"
+            echo "📋 To force update, manually remove the custom menu.json file on the server"
+            echo "📋 Custom menu location: ${{ secrets.DEPLOY_MENU_PATH }}/menu.json"
+          else
+            echo "📋 No custom menu found - deploying repository menu.json..."
+            # Copy menu.json to server
+            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa menu.json ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_MENU_PATH }}/
+            
+            # Restart container to pick up changes
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+              "docker restart badaiinasite || echo 'Container restart failed - may need initial deployment'"
+          fi
 
       - name: Cleanup SSH key
         if: always()

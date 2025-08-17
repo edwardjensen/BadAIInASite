@@ -236,10 +236,17 @@ jobs:
           docker stop badaiinasite || true
           docker rm badaiinasite || true
           
-          # Ensure menu config directory exists and update menu.json from repo
+          # Ensure menu config directory exists
           mkdir -p ${{ secrets.DEPLOY_MENU_PATH }}
-          echo "📋 Updating menu.json from repository version..."
-          docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} cat /app/menu.json > ${{ secrets.DEPLOY_MENU_PATH }}/menu.json
+          
+          # Check if custom menu.json exists and preserve it
+          if [ -f "${{ secrets.DEPLOY_MENU_PATH }}/menu.json" ]; then
+            echo "📋 Custom menu.json found - preserving existing file"
+            echo "📋 Keeping custom menu.json (not updating from repository)"
+          else
+            echo "📋 No custom menu.json found - installing default from repository..."
+            docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} cat /app/menu.json > ${{ secrets.DEPLOY_MENU_PATH }}/menu.json
+          fi
           
           # Pull and run the image
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}

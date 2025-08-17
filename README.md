@@ -116,7 +116,7 @@ For version releases with code changes:
 2. **Automated CI/CD pipeline** builds Docker image with version info
 3. **GitHub release** is created with changelog
 4. **Production deployment** occurs automatically
-5. **Menu reset** - menu.json is updated from repository version
+5. **Menu protection** - existing custom menu.json files are preserved (not overwritten)
 
 ### ⚡ Menu-Only Deployment (Fast Updates)
 For quick menu changes without full releases:
@@ -126,6 +126,31 @@ For quick menu changes without full releases:
 4. **Instant restart** of existing container to apply changes
 
 Both workflows use **Tailscale VPN** for secure server access and **volume mounting** for persistent menu configuration.
+
+### 🛡️ Custom Menu Protection
+
+**Important**: The deployment system automatically protects custom menu configurations:
+
+#### For Production Servers
+- **First deployment**: Uses repository `menu.json` as the default
+- **Subsequent deployments**: If a custom `menu.json` already exists on the server, it will **NOT** be overwritten
+- **Manual override**: To force update from repository, manually remove the existing file on the server
+
+#### Behavior by Workflow
+- **🏷️ Release Deployment**: Checks for existing custom menu, preserves if found
+- **⚡ Menu-Only Deployment**: Skips update if custom menu detected on server
+
+#### Managing Custom Menus
+```bash
+# To check if you have a custom menu on the server
+ssh user@server "ls -la /path/to/menu/menu.json"
+
+# To force update from repository (removes custom menu)
+ssh user@server "rm /path/to/menu/menu.json"
+# Then trigger a deployment
+```
+
+This ensures your production customizations are never accidentally overwritten by CI/CD processes!
 
 ### Manual Server Deployment
 
